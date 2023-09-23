@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+header {
+  background-color: whitesmoke;
+  padding: 1rem;
+}
+
+header a {
+  color: black;
+  font-weight: bolder;
+  font-size: x-large;
+  font-style: normal;
+  font-family: cursive;
+  text-decoration: none;
+}
