@@ -1,4 +1,4 @@
-import data from './data';
+//import data from './data';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import HomeScreen from './screens/HomeScreen';
 import ProductScreen from './screens/ProductScreen';
@@ -11,6 +11,8 @@ import { useContext } from 'react';
 import { Store } from './Store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart } from '@fortawesome/free-solid-svg-icons';
+import CartScreen from './screens/CartScreen';
+import SigninScreen from './screens/SigninScreen';
 
 function App() {
   const { state } = useContext(Store);
@@ -39,7 +41,7 @@ function App() {
                   </span>
                   {cart.cartItems.length > 0 && (
                     <Badge pill bg="danger">
-                      {cart.cartItems.length}
+                      {cart.cartItems.reduce((a, c) => a + c.quantity, 0)}
                     </Badge>
                   )}
                 </Link>
@@ -52,6 +54,8 @@ function App() {
             <Routes>
               <Route path="/product/:slug" element={<ProductScreen />} />
               <Route path="/" element={<HomeScreen />} />
+              <Route path="/cart" element={<CartScreen />} />
+              <Route path="/signin" element={<SigninScreen />} />
             </Routes>
           </Container>
         </main>
