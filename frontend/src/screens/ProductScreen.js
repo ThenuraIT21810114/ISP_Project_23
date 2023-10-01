@@ -16,6 +16,8 @@ import { Store } from '../Store';
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case 'REFRESH_PRODUCT':
+      return { ...state, product: action.payload };
     case 'FETCH_REQUEST':
       return { ...state, loading: true };
     case 'FETCH_SUCCESS':
@@ -28,6 +30,8 @@ const reducer = (state, action) => {
 };
 
 function ProductScreen() {
+  //const [selectedImage, setSelectedImage] = useState('');
+
   const Params = useParams();
   const { slug } = Params;
   const navigate = useNavigate();
@@ -96,6 +100,24 @@ function ProductScreen() {
               ></Rating>
             </ListGroup.Item>
             <ListGroup.Item>Price : LKR{product.price}</ListGroup.Item>
+            {/* <ListGroup.Item>
+              <Row xs={1} md={2} className="g-2">
+                {[product.Image, ...product.Images].map((x) => (
+                  <Col key={x}>
+                    <Card>
+                      <Button
+                        className="thumbnail"
+                        type="button"
+                        variant="light"
+                        onClick={() => setSelectedImage(x)}
+                      >
+                        <Card.Img variant="top" src={x} alt="product" />
+                      </Button>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </ListGroup.Item> */}
             <ListGroup.Item>
               Description:
               <p>{product.description}</p>

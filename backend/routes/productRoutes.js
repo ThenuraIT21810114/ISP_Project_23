@@ -21,7 +21,7 @@ productRouter.post(
       Image: '/images/p1.jpg',
       price: 0,
       category: 'sample category',
-      Material: 'sample material',
+      Material: 'sample Material',
       countInStock: 0,
       rating: 0,
       numReviews: 0,

@@ -235,8 +235,8 @@ export default function ProductEditScreen() {
               required
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="material">
-            <Form.Label>Brand</Form.Label>
+          <Form.Group className="mb-3" controlId="Material">
+            <Form.Label>Material</Form.Label>
             <Form.Control
               value={Material}
               onChange={(e) => setMaterial(e.target.value)}
