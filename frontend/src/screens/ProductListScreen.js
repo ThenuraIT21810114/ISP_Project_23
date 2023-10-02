@@ -188,7 +188,6 @@ export default function ProductListScreen() {
                     >
                       <FontAwesomeIcon icon={faEdit} />
                     </Button>
-                    &nbsp;
                     <Button
                       type="button"
                       variant="light"
