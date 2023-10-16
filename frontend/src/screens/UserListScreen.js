@@ -1,22 +1,26 @@
-import React, { useContext, useEffect, useReducer } from 'react';
-import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import React, { useContext, useEffect, useReducer } from 'react';
+import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
-import Button from 'react-bootstrap/esm/Button';
-import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const reducer = (state, action) => {
   switch (action.type) {
     case 'FETCH_REQUEST':
       return { ...state, loading: true };
     case 'FETCH_SUCCESS':
-      return { ...state, orders: action.payload, loading: false };
+      return {
+        ...state,
+        users: action.payload,
+        loading: false,
+      };
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
     case 'DELETE_REQUEST':
@@ -35,33 +39,29 @@ const reducer = (state, action) => {
       return state;
   }
 };
-
-export default function OrderHistoryScreen() {
-  const { state } = useContext(Store);
-  const { userInfo } = state;
+export default function UserListScreen() {
   const navigate = useNavigate();
-
-  const [{ loading, error, orders, successDelete }, dispatch] = useReducer(
-    reducer,
-    {
+  const [{ loading, error, users, loadingDelete, successDelete }, dispatch] =
+    useReducer(reducer, {
       loading: true,
       error: '',
-    }
-  );
+    });
+
+  const { state } = useContext(Store);
+  const { userInfo } = state;
+
   useEffect(() => {
     const fetchData = async () => {
-      dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const { data } = await axios.get(
-          `/api/orders/mine`,
-
-          { headers: { Authorization: `Bearer ${userInfo.token}` } }
-        );
+        dispatch({ type: 'FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/users`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
-      } catch (error) {
+      } catch (err) {
         dispatch({
           type: 'FETCH_FAIL',
-          payload: getError(error),
+          payload: getError(err),
         });
       }
     };
@@ -72,16 +72,16 @@ export default function OrderHistoryScreen() {
     }
   }, [userInfo, successDelete]);
 
-  const deleteHandler = async (order) => {
+  const deleteHandler = async (user) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
         dispatch({ type: 'DELETE_REQUEST' });
-        await axios.delete(`/api/orders/${order._id}`, {
+        await axios.delete(`/api/users/${user._id}`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        toast.success('order deleted successfully');
+        toast.success('user deleted successfully');
         dispatch({ type: 'DELETE_SUCCESS' });
-      } catch (err) {
+      } catch (error) {
         toast.error(getError(error));
         dispatch({
           type: 'DELETE_FAIL',
@@ -89,14 +89,14 @@ export default function OrderHistoryScreen() {
       }
     }
   };
-
   return (
     <div>
       <Helmet>
-        <title>Order History</title>
+        <title>Users</title>
       </Helmet>
+      <h1>Users</h1>
 
-      <h1>Order History</h1>
+      {loadingDelete && <LoadingBox></LoadingBox>}
       {loading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
@@ -106,40 +106,32 @@ export default function OrderHistoryScreen() {
           <thead>
             <tr>
               <th>ID</th>
-              <th>DATE</th>
-              <th>TOTAL</th>
-              <th>PAID</th>
-              <th>DELIVERED</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>IS ADMIN</th>
               <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <td>{order._id}</td>
-                <td>{order.createdAt.substring(0, 10)}</td>
-                <td>LKR{order.totalPrice.toFixed(2)}</td>
-                <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
-                <td>
-                  {order.isDelivered
-                    ? order.deliveredAt.substring(0, 10)
-                    : 'No'}
-                </td>
+            {users.map((user) => (
+              <tr key={user._id}>
+                <td>{user._id}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.isAdmin ? 'YES' : 'NO'}</td>
                 <td>
                   <Button
                     type="button"
                     variant="light"
-                    onClick={() => {
-                      navigate(`/order/${order._id}`);
-                    }}
+                    onClick={() => navigate(`/admin/user/${user._id}`)}
                   >
-                    <FontAwesomeIcon icon={faInfoCircle} />
+                    <FontAwesomeIcon icon={faEdit} />
                   </Button>
                   &nbsp;
                   <Button
                     type="button"
                     variant="light"
-                    onClick={() => deleteHandler(order)}
+                    onClick={() => deleteHandler(user)}
                   >
                     <FontAwesomeIcon icon={faTrash} />
                   </Button>
