@@ -84,6 +84,7 @@ export default function DashBoardScreen() {
                 </Card.Body>
               </Card>
             </Col>
+
             <Col md={4}>
               <Card>
                 <Card.Body>

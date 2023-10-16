@@ -137,3 +137,9 @@ main {
 button.thumbnail {
   padding: 0;
 }
+
+.slideshow-container {
+  width: 100%;
+  max-width: 1200px; /* Adjust the max-width as needed */
+  margin: 0 auto; /* Center the container horizontally */
+}

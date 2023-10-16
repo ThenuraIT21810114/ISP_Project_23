@@ -65,6 +65,8 @@ function App() {
     fetchCategories();
   }, []);
 
+  const isAdminView = userInfo && userInfo.isAdmin;
+
   return (
     <BrowserRouter>
       <div
@@ -294,9 +296,63 @@ function App() {
             </Routes>
           </Container>
         </main>
-        <footer>
-          <div className="text-center">All rights reserved.2023</div>
-        </footer>
+        {/* Conditionally render the footer based on isAdminView */}
+        {!isAdminView && (
+          <footer
+            className="text-center text-white"
+            style={{ backgroundColor: '#f1f1f1' }}
+          >
+            <div className="container pt-4">
+              <section className="mb-4">
+                {/* Facebook */}
+                <a
+                  className="btn btn-link btn-floating btn-lg text-dark m-1"
+                  href="https://www.facebook.com/Garafashions.sl/"
+                  role="button"
+                  data-mdb-ripple-color="dark"
+                >
+                  <i className="fab fa-facebook-f"></i>
+                </a>
+                {/* Instagram */}
+                <a
+                  className="btn btn-link btn-floating btn-lg text-dark m-1"
+                  href="https://www.instagram.com/gara_fashion___/"
+                  role="button"
+                  data-mdb-ripple-color="dark"
+                >
+                  <i className="fab fa-instagram"></i>
+                </a>
+                {/* TikTok */}
+                <a
+                  className="btn btn-link btn-floating btn-lg text-dark m-1"
+                  href="https://www.tiktok.com/@gara_fashion"
+                  role="button"
+                  data-mdb-ripple-color="dark"
+                >
+                  <i className="fab fa-tiktok"></i>
+                </a>
+                {/* YouTube */}
+                <a
+                  className="btn btn-link btn-floating btn-lg text-dark m-1"
+                  href="https://www.youtube.com/@gara_production"
+                  role="button"
+                  data-mdb-ripple-color="dark"
+                >
+                  <i className="fab fa-youtube"></i>
+                </a>
+              </section>
+            </div>
+            <div
+              className="text-center text-white p-3"
+              style={{ backgroundColor: 'black' }}
+            >
+              © 2023 Copyright:
+              <a className="text-white" href="#!">
+                GaraFashion.com
+              </a>
+            </div>
+          </footer>
+        )}
       </div>
     </BrowserRouter>
   );

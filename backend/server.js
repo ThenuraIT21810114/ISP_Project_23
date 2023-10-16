@@ -6,7 +6,7 @@ import productRouter from './routes/productRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import orderRouter from './routes/orderRoutes.js';
 //import uploadRouter from './routes/uploadRoutes.js';
-// import productModel from './models/productModel.js';
+//import productModel from './models/productModel.js';
 //import bodyParser from 'body-parser';
 
 dotenv.config();

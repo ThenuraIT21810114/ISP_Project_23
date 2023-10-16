@@ -7,7 +7,8 @@ import Product from '../components/Product';
 import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
-
+import { Carousel } from 'react-responsive-carousel'; // Import the Carousel component
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 //import data from '../data';
 
 const reducer = (state, action) => {
@@ -49,6 +50,21 @@ function HomeScreen() {
       <Helmet>
         <title>GARA FASHION</title>
       </Helmet>
+      {/* Slideshow */}
+      <div className="slideshow-container">
+        <Carousel autoPlay infiniteLoop>
+          <div>
+            <img src="/images/slideshowimg1.png" alt="Slide 1" />
+          </div>
+          <div>
+            <img src="/images/slideshowimg2.png" alt="Slide 2" />
+          </div>
+          <div>
+            <img src="/images/slideshowimg3.png" alt="Slide 3" />
+          </div>
+          {/* Add more slides as needed */}
+        </Carousel>
+      </div>
       <h1 className="header1">
         <center>Featured Products</center>
       </h1>
