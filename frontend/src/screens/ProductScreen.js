@@ -212,7 +212,7 @@ function ProductScreen() {
       <div className="my-3">
         <h2 ref={reviewsRef}>Reviews</h2>
         <div className="mb-3">
-          {product.reviews.length === 0 && (
+          {product.reviews?.length === 0 && (
             <MessageBox>There is no review</MessageBox>
           )}
         </div>

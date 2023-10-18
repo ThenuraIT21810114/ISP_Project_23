@@ -79,6 +79,11 @@ productRouter.post(
     const productId = req.params.id;
     const product = await Product.findById(productId);
     if (product) {
+      // Check if product.reviews is defined before using .find() method
+      if (!product.reviews) {
+        product.reviews = [];
+      }
+
       if (product.reviews.find((x) => x.name === req.user.name)) {
         return res
           .status(400)
@@ -92,9 +97,15 @@ productRouter.post(
       };
       product.reviews.push(review);
       product.numReviews = product.reviews.length;
-      product.rating =
-        product.reviews.reduce((a, c) => c.rating + a, 0) /
-        product.reviews.length;
+      // Calculate the rating if product.reviews is not empty
+      if (product.reviews.length > 0) {
+        product.rating =
+          product.reviews.reduce((a, c) => c.rating + a, 0) /
+          product.reviews.length;
+      } else {
+        product.rating = 0; // Set a default rating if there are no reviews
+      }
+
       const updatedProduct = await product.save();
       res.status(201).send({
         message: 'Review Created',

@@ -11,6 +11,7 @@ import MessageBox from '../components/MessageBox';
 import { getError } from '../utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Helmet } from 'react-helmet-async';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -139,6 +140,9 @@ export default function ProductListScreen() {
 
   return (
     <div>
+      <Helmet>
+        <title>Products Inventory</title>
+      </Helmet>
       <Row>
         <Col>
           <h1>Products</h1>
