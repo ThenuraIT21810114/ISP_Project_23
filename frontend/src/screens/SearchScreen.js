@@ -1,10 +1,10 @@
-import React, { useEffect, useReducer, useState } from 'react'; // Import necessary React hooks and components
-import { Link, useNavigate, useLocation } from 'react-router-dom'; // Import routing and location-related hooks
-import axios from 'axios'; // Import Axios for making HTTP requests
-import { toast } from 'react-toastify'; // Import Toast for displaying notifications
-import { getError } from '../utils'; // Import a utility function for handling errors
-import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
-import Row from 'react-bootstrap/Row'; // Import Bootstrap components
+import React, { useEffect, useReducer, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { getError } from '../utils';
+import { Helmet } from 'react-helmet-async';
+import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Rating from '../components/Rating';
 import LoadingBox from '../components/LoadingBox';
@@ -14,13 +14,11 @@ import Product from '../components/Product';
 import LinkContainer from 'react-router-bootstrap/LinkContainer';
 
 const reducer = (state, action) => {
-  // Define a reducer function for managing state
   switch (action.type) {
     case 'FETCH_REQUEST':
-      return { ...state, loading: true }; // Indicate a loading state
+      return { ...state, loading: true };
     case 'FETCH_SUCCESS':
       return {
-        // Set the state with fetched product data
         ...state,
         products: action.payload.products,
         page: action.payload.page,
@@ -29,14 +27,14 @@ const reducer = (state, action) => {
         loading: false,
       };
     case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }; // Set an error state
+      return { ...state, loading: false, error: action.payload };
+
     default:
       return state;
   }
 };
 
 const prices = [
-  // Define an array of price range options
   {
     name: 'LKR1500 to LKR2500',
     value: '1500-2500',
@@ -52,19 +50,21 @@ const prices = [
 ];
 
 export const ratings = [
-  // Define an array of rating options
   {
     name: '4stars & up',
     rating: 4,
   },
+
   {
     name: '3stars & up',
     rating: 3,
   },
+
   {
     name: '2stars & up',
     rating: 2,
   },
+
   {
     name: '1stars & up',
     rating: 1,
@@ -72,24 +72,23 @@ export const ratings = [
 ];
 
 export default function SearchScreen() {
-  const navigate = useNavigate(); // Get a function for programmatic navigation
-  const { search } = useLocation(); // Get the current location
-  const sp = new URLSearchParams(search);
-  const category = sp.get('category') || 'all'; // Get the category from the URL or default to 'all'
-  const query = sp.get('query') || 'all'; // Get the query from the URL or default to 'all'
-  const price = sp.get('price') || 'all'; // Get the price range from the URL or default to 'all'
-  const rating = sp.get('rating') || 'all'; // Get the rating from the URL or default to 'all'
-  const order = sp.get('order') || 'newest'; // Get the sorting order from the URL or default to 'newest'
-  const page = sp.get('page') || 1; // Get the page number from the URL or default to 1
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const sp = new URLSearchParams(search); // /search?category=Shirts
+  const category = sp.get('category') || 'all';
+  const query = sp.get('query') || 'all';
+  const price = sp.get('price') || 'all';
+  const rating = sp.get('rating') || 'all';
+  const order = sp.get('order') || 'newest';
+  const page = sp.get('page') || 1;
 
-  const [{ loading, error, products, pages, countProducts }, dispatch] = // Initialize state using a reducer
+  const [{ loading, error, products, pages, countProducts }, dispatch] =
     useReducer(reducer, {
       loading: true,
       error: '',
     });
 
   useEffect(() => {
-    // Fetch products and update the state when component mounts or URL parameters change
     const fetchData = async () => {
       try {
         const { data } = await axios.get(
@@ -106,9 +105,8 @@ export default function SearchScreen() {
     fetchData();
   }, [category, error, order, page, price, query, rating]);
 
-  const [categories, setCategories] = useState([]); // Initialize state for categories
+  const [categories, setCategories] = useState([]);
   useEffect(() => {
-    // Fetch product categories when the component mounts
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get(`/api/products/categories`);

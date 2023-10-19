@@ -1,63 +1,60 @@
-import axios from 'axios'; // Import Axios for making HTTP requests
-import React, { useContext, useEffect, useReducer } from 'react'; // Import React and related hooks
-import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'; // Import PayPalButtons component for PayPal payments
-import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
-import { useNavigate, useParams } from 'react-router-dom'; // Import useNavigate and useParams for routing and URL parameters
-import Row from 'react-bootstrap/Row'; // Import Bootstrap components
+import axios from 'axios';
+import React, { useContext, useEffect, useReducer } from 'react';
+import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate, useParams } from 'react-router-dom';
+import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
-import { Link } from 'react-router-dom'; // Import Link for internal routing
-import LoadingBox from '../components/LoadingBox'; // Import a loading component
-import MessageBox from '../components/MessageBox'; // Import a message box component
-import { Store } from '../Store'; // Import a Store component for global state management
-import { getError } from '../utils'; // Import a utility function
-import { toast } from 'react-toastify'; // Import toast notifications
+import { Link } from 'react-router-dom';
+import LoadingBox from '../components/LoadingBox';
+import MessageBox from '../components/MessageBox';
+import { Store } from '../Store';
+import { getError } from '../utils';
+import { toast } from 'react-toastify';
 
-// Reducer function for managing state
 function reducer(state, action) {
   switch (action.type) {
     case 'FETCH_REQUEST':
-      return { ...state, loading: true, error: '' }; // Indicate a fetch request with loading state
+      return { ...state, loading: true, error: '' };
     case 'FETCH_SUCCESS':
-      return { ...state, loading: false, order: action.payload, error: '' }; // Set order data and indicate a successful fetch
+      return { ...state, loading: false, order: action.payload, error: '' };
     case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }; // Indicate a fetch failure with an error message
+      return { ...state, loading: false, error: action.payload };
     case 'PAY_REQUEST':
-      return { ...state, loadingPay: true }; // Indicate a payment request
+      return { ...state, loadingPay: true };
     case 'PAY_SUCCESS':
-      return { ...state, loadingPay: false, successPay: true }; // Indicate a successful payment
+      return { ...state, loadingPay: false, successPay: true };
     case 'PAY_FAIL':
-      return { ...state, loadingPay: false }; // Indicate a payment failure
+      return { ...state, loadingPay: false };
     case 'PAY_RESET':
-      return { ...state, loadingPay: false, successPay: false }; // Reset payment status
+      return { ...state, loadingPay: false, successPay: false };
 
     case 'DELIVER_REQUEST':
-      return { ...state, loadingDeliver: true }; // Indicate a delivery request
+      return { ...state, loadingDeliver: true };
     case 'DELIVER_SUCCESS':
-      return { ...state, loadingDeliver: false, successDeliver: true }; // Indicate a successful delivery
+      return { ...state, loadingDeliver: false, successDeliver: true };
     case 'DELIVER_FAIL':
-      return { ...state, loadingDeliver: false }; // Indicate a delivery failure
+      return { ...state, loadingDeliver: false };
     case 'DELIVER_RESET':
       return {
         ...state,
         loadingDeliver: false,
         successDeliver: false,
-      }; // Reset delivery status
+      };
     default:
       return state;
   }
 }
-
-// Component for handling the order screen
 export default function OrderScreen() {
-  const { state } = useContext(Store); // Access global state
+  const { state } = useContext(Store);
   const { userInfo } = state;
 
-  const params = useParams(); // Get URL parameters
-  const { id: orderId } = params; // Destructure the "id" from URL parameters
-  const navigate = useNavigate(); // Initialize a navigation function
+  const params = useParams();
+  const { id: orderId } = params;
+  const navigate = useNavigate();
 
   const [
     {
@@ -78,15 +75,14 @@ export default function OrderScreen() {
     loadingPay: false,
   });
 
-  const [{ isPending }, paypalDispatch] = usePayPalScriptReducer(); // Manage PayPal script loading state
+  const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
 
-  // Function to create a PayPal order
   function createOrder(data, actions) {
     return actions.order
       .create({
         purchase_units: [
           {
-            amount: { value: order.totalPrice }, // Set the order total price
+            amount: { value: order.totalPrice },
           },
         ],
       })
@@ -95,7 +91,6 @@ export default function OrderScreen() {
       });
   }
 
-  // Function to handle a successful PayPal payment approval
   function onApprove(data, actions) {
     return actions.order.capture().then(async function (details) {
       try {
@@ -115,13 +110,10 @@ export default function OrderScreen() {
       }
     });
   }
-
-  // Function to handle PayPal payment errors
   function onError(err) {
     toast.error(getError(err));
   }
 
-  // Use useEffect to fetch the order details and handle PayPal script loading
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -136,7 +128,7 @@ export default function OrderScreen() {
     };
 
     if (!userInfo) {
-      return navigate('/login'); // Redirect to the login page if not logged in
+      return navigate('/login');
     }
     if (
       !order._id ||
@@ -144,12 +136,12 @@ export default function OrderScreen() {
       successDeliver ||
       (order._id && order._id !== orderId)
     ) {
-      fetchOrder(); // Fetch order data if not loaded or after a successful payment/delivery
+      fetchOrder();
       if (successPay) {
-        dispatch({ type: 'PAY_RESET' }); // Reset payment status
+        dispatch({ type: 'PAY_RESET' });
       }
       if (successDeliver) {
-        dispatch({ type: 'DELIVER_RESET' }); // Reset delivery status
+        dispatch({ type: 'DELIVER_RESET' });
       }
     } else {
       const loadPaypalScript = async () => {
@@ -163,9 +155,9 @@ export default function OrderScreen() {
             currency: 'USD',
           },
         });
-        paypalDispatch({ type: 'setLoadingStatus', value: 'pending' }); // Set PayPal script loading status
+        paypalDispatch({ type: 'setLoadingStatus', value: 'pending' });
       };
-      loadPaypalScript(); // Load PayPal script if order data is loaded
+      loadPaypalScript();
     }
   }, [
     order,
@@ -177,7 +169,6 @@ export default function OrderScreen() {
     successDeliver,
   ]);
 
-  // Function to mark the order as delivered
   async function deliverOrderHandler() {
     try {
       dispatch({ type: 'DELIVER_REQUEST' });
@@ -196,7 +187,6 @@ export default function OrderScreen() {
     }
   }
 
-  // Render loading, error, or order details based on state
   return loading ? (
     <LoadingBox></LoadingBox>
   ) : error ? (

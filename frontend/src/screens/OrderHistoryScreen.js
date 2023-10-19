@@ -1,51 +1,49 @@
-import React, { useContext, useEffect, useReducer } from 'react'; // Import React and related hooks
-import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
-import axios from 'axios'; // Import Axios for making HTTP requests
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
-import LoadingBox from '../components/LoadingBox'; // Import a loading component
-import MessageBox from '../components/MessageBox'; // Import a message box component
-import { Store } from '../Store'; // Import a Store component for global state management
-import { getError } from '../utils'; // Import a utility function
-import Button from 'react-bootstrap/esm/Button'; // Import a Bootstrap Button component
-import { toast } from 'react-toastify'; // Import toast notifications
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesomeIcon
+import React, { useContext, useEffect, useReducer } from 'react';
+import { Helmet } from 'react-helmet-async';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import LoadingBox from '../components/LoadingBox';
+import MessageBox from '../components/MessageBox';
+import { Store } from '../Store';
+import { getError } from '../utils';
+import Button from 'react-bootstrap/esm/Button';
+import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFilePdf,
   faInfoCircle,
   faTrash,
-} from '@fortawesome/free-solid-svg-icons'; // Import FontAwesome icons
+} from '@fortawesome/free-solid-svg-icons';
 
-// Reducer function for managing state
 const reducer = (state, action) => {
   switch (action.type) {
     case 'FETCH_REQUEST':
-      return { ...state, loading: true }; // Indicate a loading state
+      return { ...state, loading: true };
     case 'FETCH_SUCCESS':
-      return { ...state, orders: action.payload, loading: false }; // Set orders and indicate a successful fetch
+      return { ...state, orders: action.payload, loading: false };
     case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }; // Indicate a fetch failure with an error message
+      return { ...state, loading: false, error: action.payload };
     case 'DELETE_REQUEST':
-      return { ...state, loadingDelete: true, successDelete: false }; // Indicate a delete request and reset success flag
+      return { ...state, loadingDelete: true, successDelete: false };
     case 'DELETE_SUCCESS':
       return {
         ...state,
         loadingDelete: false,
         successDelete: true,
-      }; // Indicate a successful delete
+      };
     case 'DELETE_FAIL':
-      return { ...state, loadingDelete: false }; // Indicate a delete failure
+      return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
-      return { ...state, loadingDelete: false, successDelete: false }; // Reset delete status
+      return { ...state, loadingDelete: false, successDelete: false };
     default:
       return state;
   }
 };
 
-// Component for handling the order history screen
 export default function OrderHistoryScreen() {
-  const { state } = useContext(Store); // Access global state
-  const { userInfo } = state; // Destructure user info from the global state
-  const navigate = useNavigate(); // Initialize a navigation function
+  const { state } = useContext(Store);
+  const { userInfo } = state;
+  const navigate = useNavigate();
 
   const [{ loading, error, orders, successDelete }, dispatch] = useReducer(
     reducer,
@@ -53,53 +51,51 @@ export default function OrderHistoryScreen() {
       loading: true,
       error: '',
     }
-  ); // Use the reducer to manage the component's state
-
-  // Use useEffect to fetch order history data
+  );
   useEffect(() => {
     const fetchData = async () => {
-      dispatch({ type: 'FETCH_REQUEST' }); // Indicate a loading state
+      dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const { data } = await axios.get(`/api/orders/mine`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        dispatch({ type: 'FETCH_SUCCESS', payload: data }); // Indicate a successful fetch with data
+        const { data } = await axios.get(
+          `/api/orders/mine`,
+
+          { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        );
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (error) {
         dispatch({
           type: 'FETCH_FAIL',
-          payload: getError(error), // Indicate a fetch failure with an error message
+          payload: getError(error),
         });
       }
     };
-
     if (successDelete) {
-      dispatch({ type: 'DELETE_RESET' }); // Reset delete status
+      dispatch({ type: 'DELETE_RESET' });
     } else {
-      fetchData(); // Fetch data if no recent successful delete
+      fetchData();
     }
   }, [userInfo, successDelete]);
 
-  // Function to delete an order
   const deleteHandler = async (order) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
-        dispatch({ type: 'DELETE_REQUEST' }); // Indicate a delete request
+        dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/orders/${order._id}`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        toast.success('Order deleted successfully');
-        dispatch({ type: 'DELETE_SUCCESS' }); // Indicate a successful delete
+        toast.success('order deleted successfully');
+        dispatch({ type: 'DELETE_SUCCESS' });
       } catch (err) {
         toast.error(getError(error));
         dispatch({
-          type: 'DELETE_FAIL', // Indicate a delete failure
+          type: 'DELETE_FAIL',
         });
       }
     }
   };
 
-  // Function to view the PDF of an order
   const viewPdfHandler = async (order) => {
+    // Send a request to the backend to generate and return the PDF
     try {
       const response = await axios.get(`/api/orders/${order._id}/pdf`, {
         headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -122,9 +118,10 @@ export default function OrderHistoryScreen() {
   return (
     <div>
       <Helmet>
-        <title>Order History</title> {/* Set the title in the document head */}
+        <title>Order History</title>
       </Helmet>
-      <h1>Order History</h1> {/* Render the "Order History" title */}
+
+      <h1>Order History</h1>
       {loading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (

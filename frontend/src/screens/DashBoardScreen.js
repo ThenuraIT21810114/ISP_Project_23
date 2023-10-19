@@ -1,77 +1,69 @@
 import React, { useContext, useEffect, useReducer } from 'react';
-import Chart from 'react-google-charts'; // Importing a chart library
-import axios from 'axios'; // Importing axios for making HTTP requests
-import { Store } from '../Store'; // Importing a Store component
-import { getError } from '../utils'; // Importing a utility function
-import LoadingBox from '../components/LoadingBox'; // Importing a loading component
-import MessageBox from '../components/MessageBox'; // Importing a message box component
-import Row from 'react-bootstrap/Row'; // Importing a Bootstrap Row component
-import Col from 'react-bootstrap/Col'; // Importing a Bootstrap Col component
-import Card from 'react-bootstrap/Card'; // Importing a Bootstrap Card component
-import { Helmet } from 'react-helmet-async'; // Importing Helmet for handling document head changes
+import Chart from 'react-google-charts';
+import axios from 'axios';
+import { Store } from '../Store';
+import { getError } from '../utils';
+import LoadingBox from '../components/LoadingBox';
+import MessageBox from '../components/MessageBox';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import { Helmet } from 'react-helmet-async';
 
-// Reducer function for managing state
 const reducer = (state, action) => {
   switch (action.type) {
     case 'FETCH_REQUEST':
-      return { ...state, loading: true }; // Indicate a loading state
+      return { ...state, loading: true };
     case 'FETCH_SUCCESS':
       return {
         ...state,
         summary: action.payload,
         loading: false,
-      }; // Indicate a successful fetch with data
+      };
     case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }; // Indicate a fetch failure with an error message
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
 };
 
-// Main component for the dashboard
 export default function DashBoardScreen() {
-  // Use the reducer to manage the component's state
   const [{ loading, summary, error }, dispatch] = useReducer(reducer, {
     loading: true,
     error: '',
   });
-
-  // Access the user information from the context
   const { state } = useContext(Store);
   const { userInfo } = state;
 
-  // Fetch data from the server when userInfo changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { data } = await axios.get('/api/orders/summary', {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        dispatch({ type: 'FETCH_SUCCESS', payload: data }); // Dispatch a successful fetch action
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {
         dispatch({
           type: 'FETCH_FAIL',
-          payload: getError(err), // Dispatch a fetch failure action with an error message
+          payload: getError(err),
         });
       }
     };
     fetchData();
-  }, [userInfo]); // Only trigger this effect when userInfo changes
+  }, [userInfo]);
 
   return (
     <div>
       <Helmet>
-        <title>Dashboard</title> {/* Set the title in the document head */}
+        <title>Dashboard</title>
       </Helmet>
-      <h1>Dashboard</h1> {/* Render the dashboard title */}
-      {loading ? ( // Display a loading component if data is loading
+      <h1>Dashboard</h1>
+      {loading ? (
         <LoadingBox />
-      ) : error ? ( // Display an error message if there's an error
+      ) : error ? (
         <MessageBox variant="danger">{error}</MessageBox>
       ) : (
         <>
-          {' '}
-          {/* Render the dashboard content if no loading or error */}
           <Row>
             <Col md={4}>
               <Card>

@@ -1,51 +1,46 @@
-import Axios from 'axios'; // Import Axios for making HTTP requests
-import { useContext, useEffect, useState } from 'react'; // Import React hooks
-import Container from 'react-bootstrap/Container'; // Import a Bootstrap Container component
-import Button from 'react-bootstrap/Button'; // Import a Bootstrap Button component
-import Form from 'react-bootstrap/Form'; // Import a Bootstrap Form component
-import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
-import { toast } from 'react-toastify'; // Import toast notifications
-import { Store } from '../Store'; // Import a Store component for global state
-import { getError } from '../utils'; // Import a utility function
+import Axios from 'axios';
+import { useContext, useEffect, useState } from 'react';
+import Container from 'react-bootstrap/Container';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Store } from '../Store';
+import { getError } from '../utils';
 
-// Component for handling the "Forget Password" screen
 export default function ForgetPasswordScreen() {
-  const navigate = useNavigate(); // Initialize a navigation function
+  const navigate = useNavigate();
 
-  const [email, setEmail] = useState(''); // Initialize a state variable for email input
+  const [email, setEmail] = useState('');
 
-  const { state } = useContext(Store); // Access global state
-  const { userInfo } = state; // Destructure user info from the global state
+  const { state } = useContext(Store);
+  const { userInfo } = state;
 
-  // Use useEffect to check if the user is already logged in, and if so, navigate to the home page
   useEffect(() => {
     if (userInfo) {
-      navigate('/'); // Navigate to the home page if the user is logged in
+      navigate('/');
     }
   }, [navigate, userInfo]);
 
-  // Function to handle form submission
   const submitHandler = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
+    e.preventDefault();
     try {
       const { data } = await Axios.post('/api/users/forget-password', {
-        email, // Send a POST request to reset the user's password
+        email,
       });
-      toast.success(data.message); // Display a success toast message
+      toast.success(data.message);
     } catch (err) {
-      toast.error(getError(err)); // Display an error toast message with the error details
+      toast.error(getError(err));
     }
   };
 
   return (
     <Container className="small-container">
       <Helmet>
-        <title>Forget Password</title>{' '}
-        {/* Set the title in the document head */}
+        <title>Forget Password</title>
       </Helmet>
-      <h1 className="my-3">Forget Password</h1>{' '}
-      {/* Render the "Forget Password" title */}
+      <h1 className="my-3">Forget Password</h1>
       <Form onSubmit={submitHandler}>
         <Form.Group className="mb-3" controlId="email">
           <Form.Label>Email</Form.Label>
@@ -53,12 +48,11 @@ export default function ForgetPasswordScreen() {
             type="email"
             required
             onChange={(e) => setEmail(e.target.value)}
-          />{' '}
-          {/* Render an email input field */}
+          />
         </Form.Group>
 
         <div className="mb-3">
-          <Button type="submit">submit</Button> {/* Render a submit button */}
+          <Button type="submit">submit</Button>
         </div>
       </Form>
     </Container>

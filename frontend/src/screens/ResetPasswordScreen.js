@@ -1,33 +1,30 @@
-import Axios from 'axios'; // Import Axios for making HTTP requests
-import { useContext, useEffect, useState } from 'react'; // Import React hooks
-import Container from 'react-bootstrap/Container'; // Import Bootstrap Container component
-import Button from 'react-bootstrap/Button'; // Import Bootstrap Button component
-import Form from 'react-bootstrap/Form'; // Import Bootstrap Form component
-import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
-import { useNavigate, useParams } from 'react-router-dom'; // Import hooks for routing and URL parameters
-import { toast } from 'react-toastify'; // Import toast for displaying notifications
-import { Store } from '../Store'; // Import a Store component for global state management
-import { getError } from '../utils'; // Import a utility function for handling errors
+import Axios from 'axios';
+import { useContext, useEffect, useState } from 'react';
+import Container from 'react-bootstrap/Container';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Store } from '../Store';
+import { getError } from '../utils';
 
-// Define the ResetPasswordScreen component
 export default function ResetPasswordScreen() {
-  const navigate = useNavigate(); // Get a function for programmatic navigation
-  const { token } = useParams(); // Get the token parameter from the URL
+  const navigate = useNavigate();
+  const { token } = useParams();
 
-  const [password, setPassword] = useState(''); // Initialize the password state
-  const [confirmPassword, setConfirmPassword] = useState(''); // Initialize the confirm password state
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const { state } = useContext(Store); // Get the global state
-  const { userInfo } = state; // Destructure user information from the global state
+  const { state } = useContext(Store);
+  const { userInfo } = state;
 
-  // Check if the user is already signed in or if the token is not provided
   useEffect(() => {
     if (userInfo || !token) {
-      navigate('/'); // Redirect to the home page if the user is signed in or the token is missing
+      navigate('/');
     }
   }, [navigate, userInfo, token]);
 
-  // Function to handle form submission for resetting the password
   const submitHandler = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -39,14 +36,13 @@ export default function ResetPasswordScreen() {
         password,
         token,
       });
-      navigate('/signin'); // Redirect to the sign-in page after a successful password reset
+      navigate('/signin');
       toast.success('Password updated successfully');
     } catch (err) {
-      toast.error(getError(err)); // Display an error message if the password reset fails
+      toast.error(getError(err));
     }
   };
 
-  // Render the ResetPasswordScreen component
   return (
     <Container className="small-container">
       <Helmet>

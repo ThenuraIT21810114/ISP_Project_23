@@ -1,17 +1,14 @@
-// Import necessary dependencies and modules
 import express from 'express';
 import Product from '../models/productModel.js';
 import expressAsyncHandler from 'express-async-handler';
 import { isAuth, isAdmin } from '../utils.js';
 import pdf from 'pdfkit';
 
-// Create an Express Router for product-related routes
 const productRouter = express.Router();
 
-// Define a route to generate a PDF report for a specific product
 productRouter.get(
   '/:id/report',
-  isAuth, // Authentication middleware to ensure the user is logged in
+  isAuth,
   expressAsyncHandler(async (req, res) => {
     try {
       const productId = req.params.id;
@@ -27,7 +24,7 @@ productRouter.get(
       // Pipe the PDF to the response
       doc.pipe(res);
 
-      // Define a standard template for PDF content
+      // Define a standard template
       const standardTemplate = (headerText) => {
         doc
           .font('Helvetica-Bold')
@@ -36,13 +33,18 @@ productRouter.get(
           .moveDown(1);
       };
 
-      // Add content to the PDF, including product details
+      // Add content to the PDF, including user details
       standardTemplate('Product Details');
 
       doc.font('Helvetica');
       doc.fontSize(12);
 
-      // Add product details, such as ID, name, price, category, and more
+      doc.text(`Product ID: ${product._id}`);
+      doc.text(`Name: ${product.name}`);
+      doc.text(`Product Price: ${product.price}`);
+      doc.text(`Product Category: ${product.category}`);
+      doc.text(`Product Material: ${product.Material}`);
+      doc.text(`Product Stock Avaialability: ${product.countInStock}`);
 
       // End the document
       doc.end();
@@ -52,88 +54,245 @@ productRouter.get(
   })
 );
 
-// Define a route to get a list of all products
 productRouter.get('/', async (req, res) => {
-  // Retrieve and send a list of all products
+  const products = await Product.find();
+  res.send(products);
 });
 
-// Define a route to create a new product (for admins)
 productRouter.post(
   '/',
-  isAuth, // Authentication middleware
-  isAdmin, // Authorization middleware to check if the user is an admin
+  isAuth,
+  isAdmin,
   expressAsyncHandler(async (req, res) => {
-    // Create a new product based on the request data
+    const newProduct = new Product({
+      name: 'sample name ' + Date.now(),
+      slug: 'sample-name-' + Date.now(),
+      Image: '/images/p1.jpg',
+      price: 0,
+      category: 'sample category',
+      Material: 'sample Material',
+      countInStock: 0,
+      rating: 0,
+      numReviews: 0,
+      description: 'sample description',
+    });
+    const product = await newProduct.save();
+    res.send({ message: 'Product Created', product });
   })
 );
 
-// Define a route to update an existing product (for admins)
 productRouter.put(
   '/:id',
-  isAuth, // Authentication middleware
-  isAdmin, // Authorization middleware to check if the user is an admin
+  isAuth,
+  isAdmin,
   expressAsyncHandler(async (req, res) => {
-    // Update an existing product based on the request data
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (product) {
+      product.name = req.body.name;
+      product.slug = req.body.slug;
+      product.price = req.body.price;
+      product.Image = req.body.Image;
+      product.Images = req.body.Images;
+      product.category = req.body.category;
+      product.Material = req.body.Material;
+      product.countInStock = req.body.countInStock;
+      product.description = req.body.description;
+      await product.save();
+      res.send({ message: 'Product Updated' });
+    } else {
+      res.status(404).send({ message: 'Product Not Found' });
+    }
   })
 );
 
-// Define a route to delete a specific product (for admins)
 productRouter.delete(
   '/:id',
-  isAuth, // Authentication middleware
-  isAdmin, // Authorization middleware to check if the user is an admin
+  isAuth,
+  isAdmin,
   expressAsyncHandler(async (req, res) => {
-    // Delete the product by its ID
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      await product.deleteOne();
+      res.send({ message: 'Product Deleted' });
+    } else {
+      res.status(404).send({ message: 'Product Not Found' });
+    }
   })
 );
 
-// Define a route to add a review to a product
 productRouter.post(
   '/:id/reviews',
-  isAuth, // Authentication middleware
+  isAuth,
   expressAsyncHandler(async (req, res) => {
-    // Add a review to a specific product
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (product) {
+      // Check if product.reviews is defined before using .find() method
+      if (!product.reviews) {
+        product.reviews = [];
+      }
+
+      if (product.reviews.find((x) => x.name === req.user.name)) {
+        return res
+          .status(400)
+          .send({ message: 'You already submitted a review' });
+      }
+
+      const review = {
+        name: req.user.name,
+        rating: Number(req.body.rating),
+        comment: req.body.comment,
+      };
+      product.reviews.push(review);
+      product.numReviews = product.reviews.length;
+      // Calculate the rating if product.reviews is not empty
+      if (product.reviews.length > 0) {
+        product.rating =
+          product.reviews.reduce((a, c) => c.rating + a, 0) /
+          product.reviews.length;
+      } else {
+        product.rating = 0; // Set a default rating if there are no reviews
+      }
+
+      const updatedProduct = await product.save();
+      res.status(201).send({
+        message: 'Review Created',
+        review: updatedProduct.reviews[updatedProduct.reviews.length - 1],
+        numReviews: product.numReviews,
+        rating: product.rating,
+      });
+    } else {
+      res.status(404).send({ message: 'Product Not Found' });
+    }
   })
 );
 
-// Define constants for pagination
 const PAGE_SIZE = 3;
 
-// Define a route to get a list of products for admin use (with pagination)
 productRouter.get(
   '/admin',
-  isAuth, // Authentication middleware
-  isAdmin, // Authorization middleware to check if the user is an admin
+  isAuth,
+  isAdmin,
   expressAsyncHandler(async (req, res) => {
-    // Retrieve and send a paginated list of products for admin use
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const products = await Product.find()
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countProducts = await Product.countDocuments();
+    res.send({
+      products,
+      countProducts,
+      page,
+      pages: Math.ceil(countProducts / pageSize),
+    });
   })
 );
 
-// Define a route to search for products based on filters
 productRouter.get(
   '/search',
   expressAsyncHandler(async (req, res) => {
-    // Search for products based on various filters
+    const { query } = req;
+    const pageSize = query.pageSize || PAGE_SIZE;
+    const page = query.page || 1;
+    const category = query.category || '';
+    const price = query.price || '';
+    const rating = query.rating || '';
+    const order = query.order || '';
+    const searchQuery = query.query || '';
+
+    const queryFilter =
+      searchQuery && searchQuery !== 'all'
+        ? {
+            name: {
+              $regex: searchQuery,
+              $options: 'i',
+            },
+          }
+        : {};
+    const categoryFilter = category && category !== 'all' ? { category } : {};
+    const ratingFilter =
+      rating && rating !== 'all'
+        ? {
+            rating: {
+              $gte: Number(rating),
+            },
+          }
+        : {};
+    const priceFilter =
+      price && price !== 'all'
+        ? {
+            // 1500-2500
+            price: {
+              $gte: Number(price.split('-')[0]),
+              $lte: Number(price.split('-')[1]),
+            },
+          }
+        : {};
+    const sortOrder =
+      order === 'featured'
+        ? { featured: -1 }
+        : order === 'lowest'
+        ? { price: 1 }
+        : order === 'highest'
+        ? { price: -1 }
+        : order === 'toprated'
+        ? { rating: -1 }
+        : order === 'newest'
+        ? { createdAt: -1 }
+        : { _id: -1 };
+
+    const products = await Product.find({
+      ...queryFilter,
+      ...categoryFilter,
+      ...priceFilter,
+      ...ratingFilter,
+    })
+      .sort(sortOrder)
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+
+    const countProducts = await Product.countDocuments({
+      ...queryFilter,
+      ...categoryFilter,
+      ...priceFilter,
+      ...ratingFilter,
+    });
+    res.send({
+      products,
+      countProducts,
+      page,
+      pages: Math.ceil(countProducts / pageSize),
+    });
   })
 );
 
-// Define a route to get a list of product categories
 productRouter.get(
   '/categories',
   expressAsyncHandler(async (req, res) => {
-    // Retrieve and send a list of unique product categories
+    const categories = await Product.find().distinct('category');
+    res.send(categories);
   })
 );
 
-// Define a route to get a product by its slug
 productRouter.get('/slug/:slug', async (req, res) => {
-  // Retrieve and send a product by its slug
+  const product = await Product.findOne({ slug: req.params.slug });
+  if (product) {
+    res.send(product);
+  } else {
+    res.status(404).send({ message: 'Product Not Found' });
+  }
 });
-
-// Define a route to get a product by its ID
 productRouter.get('/:id', async (req, res) => {
-  // Retrieve and send a product by its ID
+  const product = await Product.findById(req.params.id);
+  if (product) {
+    res.send(product);
+  } else {
+    res.status(404).send({ message: 'Product Not Found' });
+  }
 });
 
-// Export the productRouter for use in the application
 export default productRouter;
