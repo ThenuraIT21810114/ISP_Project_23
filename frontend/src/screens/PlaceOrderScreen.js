@@ -1,17 +1,17 @@
 import Axios from 'axios';
-import React, { useContext, useEffect, useReducer } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link, useNavigate } from 'react-router-dom';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
-import ListGroup from 'react-bootstrap/ListGroup';
-import { toast } from 'react-toastify';
-import { getError } from '../utils';
-import { Store } from '../Store';
-import CheckOutSteps from '../components/CheckOutSteps';
-import LoadingBox from '../components/LoadingBox';
+import React, { useContext, useEffect, useReducer } from 'react'; // Import React and related hooks
+import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for routing
+import Row from 'react-bootstrap/Row'; // Import Bootstrap Row component
+import Col from 'react-bootstrap/Col'; // Import Bootstrap Col component
+import Card from 'react-bootstrap/Card'; // Import Bootstrap Card component
+import Button from 'react-bootstrap/Button'; // Import Bootstrap Button component
+import ListGroup from 'react-bootstrap/ListGroup'; // Import Bootstrap ListGroup component
+import { toast } from 'react-toastify'; // Import toast for displaying notifications
+import { getError } from '../utils'; // Import a utility function for handling errors
+import { Store } from '../Store'; // Import a Store component for global state management
+import CheckOutSteps from '../components/CheckOutSteps'; // Import a custom Checkout Steps component
+import LoadingBox from '../components/LoadingBox'; // Import a custom Loading Box component
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -26,25 +26,27 @@ const reducer = (state, action) => {
   }
 };
 
+// Component for placing an order
 export default function PlaceOrderScreen() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize a navigation function
 
   const [{ loading }, dispatch] = useReducer(reducer, {
     loading: false,
   });
 
-  const { state, dispatch: ctxDispatch } = useContext(Store);
-  const { cart, userInfo } = state;
+  const { state, dispatch: ctxDispatch } = useContext(Store); // Access global state and dispatch function
+  const { cart, userInfo } = state; // Destructure cart and user information from the state
 
   // Calculate the Tax Rate & Shipping Price
-  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // Function to round a number to two decimal places
   cart.itemsPrice = round2(
     cart.cartItems.reduce((a, c) => a + c.quantity * c.price, 0)
-  );
-  cart.shippingPrice = cart.itemsPrice > 100 ? round2(0) : round2(10);
-  cart.taxPrice = round2(0.15 * cart.itemsPrice);
-  cart.totalPrice = cart.itemsPrice + cart.shippingPrice + cart.taxPrice;
+  ); // Calculate the total price of items in the cart
+  cart.shippingPrice = cart.itemsPrice > 100 ? round2(0) : round2(10); // Determine the shipping price
+  cart.taxPrice = round2(0.15 * cart.itemsPrice); // Calculate the tax price
+  cart.totalPrice = cart.itemsPrice + cart.shippingPrice + cart.taxPrice; // Calculate the total price
 
+  // Function to handle placing an order
   const placeOrderHandler = async () => {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
@@ -65,17 +67,19 @@ export default function PlaceOrderScreen() {
             authorization: `Bearer ${userInfo.token}`,
           },
         }
-      );
-      ctxDispatch({ type: 'CART_CLEAR' });
-      dispatch({ type: 'CREATE_SUCCESS' });
-      localStorage.removeItem('cartItems');
-      navigate(`/order/${data.order._id}`);
+      ); // Send a request to create an order
+
+      ctxDispatch({ type: 'CART_CLEAR' }); // Clear the shopping cart in the global state
+      dispatch({ type: 'CREATE_SUCCESS' }); // Set success state
+      localStorage.removeItem('cartItems'); // Remove cart items from local storage
+      navigate(`/order/${data.order._id}`); // Navigate to the order confirmation page
     } catch (err) {
-      dispatch({ type: 'CREATE_FAIL' });
-      toast.error(getError(err));
+      dispatch({ type: 'CREATE_FAIL' }); // Set failure state
+      toast.error(getError(err)); // Display an error notification
     }
   };
 
+  // Use useEffect to check if payment method is set, and redirect if not
   useEffect(() => {
     if (!cart.paymentMethod) {
       navigate('/payment');
@@ -84,11 +88,12 @@ export default function PlaceOrderScreen() {
 
   return (
     <div>
-      <CheckOutSteps step1 step2 step3 step4></CheckOutSteps>
+      <CheckOutSteps step1 step2 step3 step4></CheckOutSteps>{' '}
+      {/* Render the checkout steps component */}
       <Helmet>
         <title>Preview Order</title>
       </Helmet>
-      <h1 className="my-3">Preview Order</h1>
+      <h1 className="my-3">Preview Order</h1> {/* Render the page title */}
       <Row>
         <Col md={8}>
           <Card className="mb-3">
@@ -100,7 +105,8 @@ export default function PlaceOrderScreen() {
                 {cart.shippingAddress.city}, {cart.shippingAddress.postalCode},
                 {cart.shippingAddress.country}
               </Card.Text>
-              <Link to="/shipping">Edit</Link>
+              <Link to="/shipping">Edit</Link>{' '}
+              {/* Provide an option to edit shipping details */}
             </Card.Body>
           </Card>
 
@@ -110,7 +116,8 @@ export default function PlaceOrderScreen() {
               <Card.Text>
                 <strong>Method:</strong> {cart.paymentMethod}
               </Card.Text>
-              <Link to="/payment">Edit</Link>
+              <Link to="/payment">Edit</Link>{' '}
+              {/* Provide an option to edit payment method */}
             </Card.Body>
           </Card>
 
@@ -137,7 +144,8 @@ export default function PlaceOrderScreen() {
                   </ListGroup.Item>
                 ))}
               </ListGroup>
-              <Link to="/cart">Edit</Link>
+              <Link to="/cart">Edit</Link>{' '}
+              {/* Provide an option to edit the cart */}
             </Card.Body>
           </Card>
         </Col>
@@ -182,9 +190,11 @@ export default function PlaceOrderScreen() {
                       disabled={cart.cartItems.length === 0}
                     >
                       Place Order
-                    </Button>
+                    </Button>{' '}
+                    {/* Render a button to place the order */}
                   </div>
-                  {loading && <LoadingBox></LoadingBox>}
+                  {loading && <LoadingBox></LoadingBox>}{' '}
+                  {/* Show a loading indicator */}
                 </ListGroup.Item>
               </ListGroup>
             </Card.Body>

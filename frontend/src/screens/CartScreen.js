@@ -11,12 +11,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function CartScreen() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // A hook from React Router for navigation
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
     cart: { cartItems },
   } = state;
 
+  // Handler to update the quantity of items in the cart
   const updateCartHandler = async (item, quantity) => {
     const { data } = await axios.get(`/api/products/${item._id}`);
     if (data.countInStock < quantity) {
@@ -28,10 +29,13 @@ export default function CartScreen() {
       payload: { ...item, quantity },
     });
   };
+
+  // Handler to remove an item from the cart
   const removeItemHandler = (item) => {
     ctxDispatch({ type: 'CART_REMOVE_ITEM', payload: item });
   };
 
+  // Handler for proceeding to the checkout
   const checkoutHandler = () => {
     navigate('/signin?redirect=/shipping');
   };

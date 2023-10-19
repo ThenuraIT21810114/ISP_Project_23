@@ -1,19 +1,20 @@
-import React, { useContext, useEffect, useReducer } from 'react';
-import axios from 'axios';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Button from 'react-bootstrap/Button';
-import { toast } from 'react-toastify';
-import { Store } from '../Store';
-import LoadingBox from '../components/LoadingBox';
-import MessageBox from '../components/MessageBox';
-import { getError } from '../utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faFilePdf, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { Helmet } from 'react-helmet-async';
+import React, { useContext, useEffect, useReducer } from 'react'; // Import React and related hooks
+import axios from 'axios'; // Import Axios for making HTTP requests
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // Import routing-related hooks
+import Row from 'react-bootstrap/Row'; // Import Bootstrap Row component
+import Col from 'react-bootstrap/Col'; // Import Bootstrap Col component
+import Button from 'react-bootstrap/Button'; // Import Bootstrap Button component
+import { toast } from 'react-toastify'; // Import toast for displaying notifications
+import { Store } from '../Store'; // Import a Store component for global state management
+import LoadingBox from '../components/LoadingBox'; // Import a custom Loading Box component
+import MessageBox from '../components/MessageBox'; // Import a custom Message Box component
+import { getError } from '../utils'; // Import a utility function for handling errors
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome icons
+import { faEdit, faFilePdf, faTrash } from '@fortawesome/free-solid-svg-icons'; // Import specific FontAwesome icons
+import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
 
 const reducer = (state, action) => {
+  // Reducer function for managing state updates
   switch (action.type) {
     case 'FETCH_REQUEST':
       return { ...state, loading: true };
@@ -55,6 +56,7 @@ const reducer = (state, action) => {
   }
 };
 
+// Component for displaying a list of products
 export default function ProductListScreen() {
   const [
     {
@@ -72,13 +74,13 @@ export default function ProductListScreen() {
     error: '',
   });
 
-  const navigate = useNavigate();
-  const { search } = useLocation();
+  const navigate = useNavigate(); // Initialize a navigation function
+  const { search } = useLocation(); // Get the current location information
   const sp = new URLSearchParams(search);
-  const page = sp.get('page') || 1;
+  const page = sp.get('page') || 1; // Get the current page from the URL
 
-  const { state } = useContext(Store);
-  const { userInfo } = state;
+  const { state } = useContext(Store); // Access global state
+  const { userInfo } = state; // Destructure user information from the state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +100,7 @@ export default function ProductListScreen() {
     }
   }, [page, userInfo, successDelete]);
 
+  // Function to create a new product
   const createHandler = async () => {
     if (window.confirm('Are you sure to create?')) {
       try {
@@ -121,6 +124,7 @@ export default function ProductListScreen() {
     }
   };
 
+  // Function to delete a product
   const deleteHandler = async (product) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
@@ -138,6 +142,7 @@ export default function ProductListScreen() {
     }
   };
 
+  // Function to view product details in PDF format
   const viewProductDetailsPdfHandler = async (product) => {
     // Send a request to the backend to generate and return the PDF
     try {

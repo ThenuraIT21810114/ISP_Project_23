@@ -1,18 +1,19 @@
-import React, { useContext, useEffect, useReducer, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Store } from '../Store';
-import { getError } from '../utils';
-import Container from 'react-bootstrap/Container';
-import ListGroup from 'react-bootstrap/ListGroup';
-import Form from 'react-bootstrap/Form';
-import { Helmet } from 'react-helmet-async';
-import LoadingBox from '../components/LoadingBox';
-import MessageBox from '../components/MessageBox';
-import Button from 'react-bootstrap/Button';
+import React, { useContext, useEffect, useReducer, useState } from 'react'; // Import React and related hooks
+import { useNavigate, useParams } from 'react-router-dom'; // Import routing related hooks
+import { toast } from 'react-toastify'; // Import toast for displaying notifications
+import axios from 'axios'; // Import Axios for making HTTP requests
+import { Store } from '../Store'; // Import a Store component for global state management
+import { getError } from '../utils'; // Import a utility function for handling errors
+import Container from 'react-bootstrap/Container'; // Import Bootstrap Container component
+import ListGroup from 'react-bootstrap/ListGroup'; // Import Bootstrap ListGroup component
+import Form from 'react-bootstrap/Form'; // Import Bootstrap Form component
+import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
+import LoadingBox from '../components/LoadingBox'; // Import a custom Loading Box component
+import MessageBox from '../components/MessageBox'; // Import a custom Message Box component
+import Button from 'react-bootstrap/Button'; // Import Bootstrap Button component
 
 const reducer = (state, action) => {
+  // Reducer function for managing state updates
   switch (action.type) {
     case 'FETCH_REQUEST':
       return { ...state, loading: true };
@@ -41,13 +42,15 @@ const reducer = (state, action) => {
       return state;
   }
 };
-export default function ProductEditScreen() {
-  const navigate = useNavigate();
-  const params = useParams(); // /product/:id
-  const { id: productId } = params;
 
-  const { state } = useContext(Store);
-  const { userInfo } = state;
+// Component for editing a product
+export default function ProductEditScreen() {
+  const navigate = useNavigate(); // Initialize a navigation function
+  const params = useParams(); // Get parameters from the URL
+  const { id: productId } = params; // Destructure the product ID from the parameters
+
+  const { state } = useContext(Store); // Access global state
+  const { userInfo } = state; // Destructure user information from the state
   const [{ loading, error, loadingUpdate, loadingUpload }, dispatch] =
     useReducer(reducer, {
       loading: true,
@@ -55,21 +58,22 @@ export default function ProductEditScreen() {
       Images: [],
     });
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [price, setPrice] = useState('');
-  const [Image, setImage] = useState('');
-  const [Images, setImages] = useState([]);
-  const [category, setCategory] = useState('');
-  const [countInStock, setCountInStock] = useState('');
-  const [Material, setMaterial] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState(''); // Initialize state for the product name
+  const [slug, setSlug] = useState(''); // Initialize state for the product slug
+  const [price, setPrice] = useState(''); // Initialize state for the product price
+  const [Image, setImage] = useState(''); // Initialize state for the product image
+  const [Images, setImages] = useState([]); // Initialize state for additional product images
+  const [category, setCategory] = useState(''); // Initialize state for the product category
+  const [countInStock, setCountInStock] = useState(''); // Initialize state for the product stock count
+  const [Material, setMaterial] = useState(''); // Initialize state for the product material
+  const [description, setDescription] = useState(''); // Initialize state for the product description
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/products/${productId}`);
+        const { data } = await axios.get(`/api/products/${productId}`); // Fetch product details by ID
+        // Update the component's state with the fetched product data
         setName(data.name);
         setSlug(data.slug);
         setPrice(data.price);
@@ -90,6 +94,7 @@ export default function ProductEditScreen() {
     fetchData();
   }, [productId]);
 
+  // Function to handle the form submission when updating a product
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
@@ -111,7 +116,7 @@ export default function ProductEditScreen() {
         {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         }
-      );
+      ); // Send a request to update the product
       dispatch({
         type: 'UPDATE_SUCCESS',
       });
@@ -122,6 +127,8 @@ export default function ProductEditScreen() {
       dispatch({ type: 'UPDATE_FAIL' });
     }
   };
+
+  // Function to handle the file upload
   const uploadFileHandler = async (e, forImages) => {
     const file = e.target.files[0];
     const bodyFormData = new FormData();
@@ -133,7 +140,7 @@ export default function ProductEditScreen() {
           'Content-Type': 'multipart/form-data',
           authorization: `Bearer ${userInfo.token}`,
         },
-      });
+      }); // Send a request to upload the file
       dispatch({ type: 'UPLOAD_SUCCESS' });
 
       if (forImages) {
@@ -141,19 +148,19 @@ export default function ProductEditScreen() {
       } else {
         setImage(data.secure_url);
       }
-      toast.success('Image uploaded successfully. click Update to apply it');
+      toast.success('Image uploaded successfully. Click Update to apply it');
     } catch (err) {
       toast.error(getError(err));
       dispatch({ type: 'UPLOAD_FAIL', payload: getError(err) });
     }
   };
+
+  // Function to handle deleting a file
   const deleteFileHandler = async (fileName) => {
-    console.log(fileName);
-    console.log(Images);
-    console.log(Images.filter((x) => x !== fileName));
-    setImages(Images.filter((x) => x !== fileName));
-    toast.success('Image removed successfully. click Update to apply it');
+    setImages(Images.filter((x) => x !== fileName)); // Remove the image file from the list of additional images
+    toast.success('Image removed successfully. Click Update to apply it');
   };
+
   return (
     <Container className="small-container">
       <Helmet>
@@ -162,9 +169,9 @@ export default function ProductEditScreen() {
       <h1>Edit Product {productId}</h1>
 
       {loading ? (
-        <LoadingBox></LoadingBox>
+        <LoadingBox></LoadingBox> // Display a loading indicator
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{error}</MessageBox> // Display an error message if there's an error
       ) : (
         <Form onSubmit={submitHandler}>
           <Form.Group className="mb-3" controlId="name">
@@ -218,7 +225,8 @@ export default function ProductEditScreen() {
                       variant="light"
                       onClick={() => deleteFileHandler(x)}
                     >
-                      <i className="fa fa-times-circle"></i>
+                      <i className="fa fa-times-circle"></i>{' '}
+                      {/* Button to remove an additional image */}
                     </Button>
                   </ListGroup.Item>
                 ))}
@@ -226,7 +234,7 @@ export default function ProductEditScreen() {
             )}
           </Form.Group>
           <Form.Group className="mb-3" controlId="additionalImageFile">
-            <Form.Label>Upload Aditional Image</Form.Label>
+            <Form.Label>Upload Additional Image</Form.Label>
             <Form.Control
               type="file"
               onChange={(e) => uploadFileHandler(e, true)}
@@ -270,7 +278,8 @@ export default function ProductEditScreen() {
             <Button disabled={loadingUpdate} type="submit">
               Update
             </Button>
-            {loadingUpdate && <LoadingBox></LoadingBox>}
+            {loadingUpdate && <LoadingBox></LoadingBox>}{' '}
+            {/* Display a loading indicator while updating */}
           </div>
         </Form>
       )}

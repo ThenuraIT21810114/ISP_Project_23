@@ -1,22 +1,23 @@
-import axios from 'axios';
-import { useContext, useEffect, useReducer, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import ListGroup from 'react-bootstrap/ListGroup';
-import Rating from '../components/Rating';
-import Card from 'react-bootstrap/Card';
-import Badge from 'react-bootstrap/Badge';
-import Button from 'react-bootstrap/Button';
-import { Helmet } from 'react-helmet-async';
-import LoadingBox from '../components/LoadingBox';
-import MessageBox from '../components/MessageBox';
-import { getError } from '../utils';
-import { Store } from '../Store';
-import { toast } from 'react-toastify';
-import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import Form from 'react-bootstrap/Form';
+import axios from 'axios'; // Import Axios for making HTTP requests
+import { useContext, useEffect, useReducer, useRef, useState } from 'react'; // Import React-related hooks
+import { Link, useNavigate, useParams } from 'react-router-dom'; // Import routing-related hooks
+import Row from 'react-bootstrap/Row'; // Import Bootstrap Row component
+import Col from 'react-bootstrap/Col'; // Import Bootstrap Col component
+import ListGroup from 'react-bootstrap/ListGroup'; // Import Bootstrap ListGroup component
+import Rating from '../components/Rating'; // Import a custom Rating component
+import Card from 'react-bootstrap/Card'; // Import Bootstrap Card component
+import Badge from 'react-bootstrap/Badge'; // Import Bootstrap Badge component
+import Button from 'react-bootstrap/Button'; // Import Bootstrap Button component
+import { Helmet } from 'react-helmet-async'; // Import Helmet for managing document head changes
+import LoadingBox from '../components/LoadingBox'; // Import a custom Loading Box component
+import MessageBox from '../components/MessageBox'; // Import a custom Message Box component
+import { getError } from '../utils'; // Import a utility function for handling errors
+import { Store } from '../Store'; // Import a Store component for global state management
+import { toast } from 'react-toastify'; // Import toast for displaying notifications
+import FloatingLabel from 'react-bootstrap/FloatingLabel'; // Import Bootstrap FloatingLabel component
+import Form from 'react-bootstrap/Form'; // Import Bootstrap Form component
 
+// Reducer function for managing state updates
 const reducer = (state, action) => {
   switch (action.type) {
     case 'REFRESH_PRODUCT':
@@ -39,20 +40,20 @@ const reducer = (state, action) => {
 };
 
 function ProductScreen() {
-  let reviewsRef = useRef();
+  let reviewsRef = useRef(); // Create a ref for reviews section
 
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [selectedImage, setSelectedImage] = useState('');
+  const [rating, setRating] = useState(0); // Set initial rating state
+  const [comment, setComment] = useState(''); // Set initial comment state
+  const [selectedImage, setSelectedImage] = useState(''); // Set initial selected image state
 
-  const Params = useParams();
-  const { slug } = Params;
-  const navigate = useNavigate();
+  const Params = useParams(); // Get URL parameters
+  const { slug } = Params; // Destructure the 'slug' parameter
+  const navigate = useNavigate(); // Initialize a navigation function
 
   const [{ loading, Error, product, loadingCreateReview }, dispatch] =
     useReducer(reducer, {
       product: {
-        Images: [], //Initialize Images as an empty array
+        Images: [], // Initialize Images as an empty array
       },
       loading: true,
       Error: '',
@@ -77,6 +78,8 @@ function ProductScreen() {
 
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { cart, userInfo } = state;
+
+  // Function to add a product to the cart
   const addToCartHandler = async () => {
     const existItem = cart.cartItems.find((x) => x._id === product._id);
     const quantity = existItem ? existItem.quantity + 1 : 1;
@@ -92,10 +95,11 @@ function ProductScreen() {
     navigate('/cart');
   };
 
+  // Function to handle form submission for creating a review
   const submitHandler = async (e) => {
     e.preventDefault();
     if (!comment || !rating) {
-      toast.error('Please enter comment and rating');
+      toast.error('Please enter a comment and rating');
       return;
     }
     try {
@@ -115,6 +119,8 @@ function ProductScreen() {
       product.numReviews = data.numReviews;
       product.rating = data.rating;
       dispatch({ type: 'REFRESH_PRODUCT', payload: product });
+
+      // Scroll to the reviews section
       window.scrollTo({
         behavior: 'smooth',
         top: reviewsRef.current.offsetTop,
@@ -124,9 +130,10 @@ function ProductScreen() {
       dispatch({ type: 'CREATE_FAIL' });
     }
   };
-  return loading ? (
+
+  return loading ? ( // If data is still loading
     <LoadingBox />
-  ) : Error ? (
+  ) : Error ? ( // If there is an error
     <MessageBox variant="danger">{Error}</MessageBox>
   ) : (
     <div>
@@ -152,7 +159,7 @@ function ProductScreen() {
                 numReviews={product.numReviews}
               ></Rating>
             </ListGroup.Item>
-            <ListGroup.Item>Price : LKR{product.price}</ListGroup.Item>
+            <ListGroup.Item>Price: LKR{product.price}</ListGroup.Item>
             <ListGroup.Item>
               <Row xs={1} md={2} className="g-2">
                 {Array.isArray(product.Images) &&
@@ -218,7 +225,7 @@ function ProductScreen() {
         <h2 ref={reviewsRef}>Reviews</h2>
         <div className="mb-3">
           {product.reviews?.length === 0 && (
-            <MessageBox>There is no review</MessageBox>
+            <MessageBox>There are no reviews</MessageBox>
           )}
         </div>
         <ListGroup>
@@ -244,11 +251,11 @@ function ProductScreen() {
                   onChange={(e) => setRating(e.target.value)}
                 >
                   <option value="">Select...</option>
-                  <option value="1">1- Poor</option>
-                  <option value="2">2- Fair</option>
-                  <option value="3">3- Good</option>
-                  <option value="4">4- Very good</option>
-                  <option value="5">5- Excelent</option>
+                  <option value="1">1 - Poor</option>
+                  <option value="2">2 - Fair</option>
+                  <option value="3">3 - Good</option>
+                  <option value="4">4 - Very good</option>
+                  <option value="5">5 - Excellent</option>
                 </Form.Select>
               </Form.Group>
               <FloatingLabel

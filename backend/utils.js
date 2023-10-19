@@ -1,13 +1,15 @@
-import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
+import jwt from 'jsonwebtoken'; // JSON Web Token library for authentication
+import nodemailer from 'nodemailer'; // Nodemailer library for sending emails
 
+// Function to determine the base URL for the application
 export const baseUrl = () =>
   process.env.BASE_URL
-    ? process.env.BASE_URL
+    ? process.env.BASE_URL // Use the BASE_URL from environment variables if defined
     : process.env.NODE_ENV !== 'production'
-    ? 'http://localhost:3000'
-    : 'https://yourdomain.com';
+    ? 'http://localhost:3000' // Use a default URL for development environment
+    : 'https://yourdomain.com'; // Use a custom URL for production environment
 
+// Function to generate a JSON Web Token (JWT) for user authentication
 export const generateToken = (user) => {
   return jwt.sign(
     {
@@ -17,17 +19,18 @@ export const generateToken = (user) => {
       isAdmin: user.isAdmin,
       isSupplier: user.isSupplier,
     },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET, // Sign the token using the JWT_SECRET from environment variables
     {
-      expiresIn: '30d',
+      expiresIn: '30d', // Token expires in 30 days
     }
   );
 };
 
+// Middleware function to check if a user is authenticated
 export const isAuth = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (authorization) {
-    const token = authorization.slice(7, authorization.length); // Bearer XXXXXX
+    const token = authorization.slice(7, authorization.length); // Extract the token (e.g., Bearer XXXXXX)
     jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
       if (err) {
         res.status(401).send({ message: 'Invalid Token' });
@@ -41,10 +44,11 @@ export const isAuth = (req, res, next) => {
   }
 };
 
+// Middleware function to check if a user is a supplier
 export const isSupplier = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (authorization) {
-    const token = authorization.slice(7, authorization.length); // Bearer XXXXXX
+    const token = authorization.slice(7, authorization.length); // Extract the token (e.g., Bearer XXXXXX)
     jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
       if (err) {
         res.status(401).send({ message: 'Invalid Token' });
@@ -58,6 +62,7 @@ export const isSupplier = (req, res, next) => {
   }
 };
 
+// Middleware function to check if a user is an admin
 export const isAdmin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
@@ -66,8 +71,16 @@ export const isAdmin = (req, res, next) => {
   }
 };
 
-//var nodemailer = require('nodemailer');
+// Create a Nodemailer transporter for sending emails
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'thenura123nemhan@gmail.com',
+    pass: 'jhbn thtg sccv xktb',
+  },
+});
 
+// Function to send an email using Nodemailer
 export const sendMail = (mailOptions) => {
   console.log('test mail.....');
   transporter.sendMail(mailOptions, function (error, info) {
@@ -79,21 +92,7 @@ export const sendMail = (mailOptions) => {
   });
 };
 
-var transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'thenura123nemhan@gmail.com',
-    pass: 'jhbn thtg sccv xktb',
-  },
-});
-
-// var mailOptions = {
-//   from: 'thenura123nemhan@gmail.com',
-//   to: 'warnasirihatn@gmail.com',
-//   subject: 'Sending Email using Node.js',
-//   text: '',
-// };
-
+// Function to generate an email template for a payment order
 export const payOrderEmailTemplate = (order) => {
   return `<h1>Thanks for shopping with us</h1>
   <p>
