@@ -9,7 +9,11 @@ import { getError } from '../utils';
 import Button from 'react-bootstrap/esm/Button';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFilePdf,
+  faInfoCircle,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -90,6 +94,27 @@ export default function OrderHistoryScreen() {
     }
   };
 
+  const viewPdfHandler = async (order) => {
+    // Send a request to the backend to generate and return the PDF
+    try {
+      const response = await axios.get(`/api/orders/${order._id}/pdf`, {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+        responseType: 'blob', // Tell Axios to expect a binary response
+      });
+
+      // Create a Blob object from the response data
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+
+      // Create a URL for the Blob
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Open the PDF in a new tab
+      window.open(pdfUrl, '_blank');
+    } catch (err) {
+      toast.error(getError(err));
+    }
+  };
+
   return (
     <div>
       <Helmet>
@@ -142,6 +167,14 @@ export default function OrderHistoryScreen() {
                     onClick={() => deleteHandler(order)}
                   >
                     <FontAwesomeIcon icon={faTrash} />
+                  </Button>
+                  &nbsp;
+                  <Button
+                    type="button"
+                    variant="light"
+                    onClick={() => viewPdfHandler(order)}
+                  >
+                    <FontAwesomeIcon icon={faFilePdf} />
                   </Button>
                 </td>
               </tr>
