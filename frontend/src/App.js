@@ -172,6 +172,9 @@ function App() {
                       <LinkContainer to="/admin/users">
                         <NavDropdown.Item>Users</NavDropdown.Item>
                       </LinkContainer>
+                      <LinkContainer to="/">
+                        <NavDropdown.Item>Suppliers</NavDropdown.Item>
+                      </LinkContainer>
                     </NavDropdown>
                   )}
                 </Nav>
