@@ -48,7 +48,7 @@ export default function ProductEditScreen() {
 
   const { state } = useContext(Store);
   const { userInfo } = state;
-  const [{ loading, error, loadingUpdate, loadingUpload, Images }, dispatch] =
+  const [{ loading, error, loadingUpdate, loadingUpload }, dispatch] =
     useReducer(reducer, {
       loading: true,
       error: '',
@@ -59,7 +59,7 @@ export default function ProductEditScreen() {
   const [slug, setSlug] = useState('');
   const [price, setPrice] = useState('');
   const [Image, setImage] = useState('');
-  //const [Images, setImages] = useState([]);
+  const [Images, setImages] = useState([]);
   const [category, setCategory] = useState('');
   const [countInStock, setCountInStock] = useState('');
   const [Material, setMaterial] = useState('');
@@ -74,7 +74,7 @@ export default function ProductEditScreen() {
         setSlug(data.slug);
         setPrice(data.price);
         setImage(data.Image);
-        //setImages(data.Images);
+        setImages(data.Images || []);
         setCategory(data.category);
         setCountInStock(data.countInStock);
         setMaterial(data.Material);
@@ -137,7 +137,7 @@ export default function ProductEditScreen() {
       dispatch({ type: 'UPLOAD_SUCCESS' });
 
       if (forImages) {
-        setImage([...Images, data.secure_url]);
+        setImages([...Images, data.secure_url]);
       } else {
         setImage(data.secure_url);
       }
@@ -150,8 +150,8 @@ export default function ProductEditScreen() {
   const deleteFileHandler = async (fileName) => {
     console.log(fileName);
     console.log(Images);
-    //console.log(Images.filter((x) => x !== fileName));
-    setImage(Images.filter((x) => x !== fileName));
+    console.log(Images.filter((x) => x !== fileName));
+    setImages(Images.filter((x) => x !== fileName));
     toast.success('Image removed successfully. click Update to apply it');
   };
   return (
@@ -207,17 +207,23 @@ export default function ProductEditScreen() {
 
           <Form.Group className="mb-3" controlId="additionalImage">
             <Form.Label>Additional Images</Form.Label>
-            {Images.length === 0 && <MessageBox>No image</MessageBox>}
-            <ListGroup variant="flush">
-              {Images.map((x) => (
-                <ListGroup.Item key={x}>
-                  {x}
-                  <Button variant="light" onClick={() => deleteFileHandler(x)}>
-                    <i className="fa fa-times-circle"></i>
-                  </Button>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
+            {Images.length === 0 ? (
+              <MessageBox>No image</MessageBox>
+            ) : (
+              <ListGroup variant="flush">
+                {Images.map((x) => (
+                  <ListGroup.Item key={x}>
+                    {x}
+                    <Button
+                      variant="light"
+                      onClick={() => deleteFileHandler(x)}
+                    >
+                      <i className="fa fa-times-circle"></i>
+                    </Button>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            )}
           </Form.Group>
           <Form.Group className="mb-3" controlId="additionalImageFile">
             <Form.Label>Upload Aditional Image</Form.Label>

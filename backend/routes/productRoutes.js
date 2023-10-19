@@ -2,8 +2,57 @@ import express from 'express';
 import Product from '../models/productModel.js';
 import expressAsyncHandler from 'express-async-handler';
 import { isAuth, isAdmin } from '../utils.js';
+import pdf from 'pdfkit';
 
 const productRouter = express.Router();
+
+productRouter.get(
+  '/:id/report',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).send({ message: 'Product not found' });
+      }
+
+      // Create a PDF document
+      const doc = new pdf();
+
+      // Pipe the PDF to the response
+      doc.pipe(res);
+
+      // Define a standard template
+      const standardTemplate = (headerText) => {
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(18)
+          .text(headerText, { align: 'center' })
+          .moveDown(1);
+      };
+
+      // Add content to the PDF, including user details
+      standardTemplate('Product Details');
+
+      doc.font('Helvetica');
+      doc.fontSize(12);
+
+      doc.text(`Product ID: ${product._id}`);
+      doc.text(`Name: ${product.name}`);
+      doc.text(`Product Price: ${product.price}`);
+      doc.text(`Product Category: ${product.category}`);
+      doc.text(`Product Material: ${product.Material}`);
+      doc.text(`Product Stock Avaialability: ${product.countInStock}`);
+
+      // End the document
+      doc.end();
+    } catch (err) {
+      return res.status(500).send({ message: 'Error generating PDF' });
+    }
+  })
+);
 
 productRouter.get('/', async (req, res) => {
   const products = await Product.find();

@@ -41,11 +41,9 @@ const reducer = (state, action) => {
 function ProductScreen() {
   let reviewsRef = useRef();
 
-  //const [selectedImage, setSelectedImage] = useState('');
-
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  //const [selectedImage, setSelectedImage] = useState('');
+  const [selectedImage, setSelectedImage] = useState('');
 
   const Params = useParams();
   const { slug } = Params;
@@ -53,17 +51,23 @@ function ProductScreen() {
 
   const [{ loading, Error, product, loadingCreateReview }, dispatch] =
     useReducer(reducer, {
-      product: [],
+      product: {
+        Images: [], //Initialize Images as an empty array
+      },
       loading: true,
       Error: '',
     });
-  //const [products, setProducts] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' });
       try {
         const result = await axios.get(`/api/products/slug/${slug}`);
-        dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
+        const updatedProduct = {
+          ...result.data,
+          Images: result.data.Images || [], // Ensure Images is an array
+        };
+        dispatch({ type: 'FETCH_SUCCESS', payload: updatedProduct });
       } catch (Error) {
         dispatch({ type: 'FETCH_FAIL', payload: getError(Error) });
       }
@@ -130,7 +134,7 @@ function ProductScreen() {
         <Col md={6}>
           <img
             className="img-large"
-            src={product.Image}
+            src={selectedImage || product.Image}
             alt={product.name}
           ></img>
         </Col>
@@ -149,24 +153,25 @@ function ProductScreen() {
               ></Rating>
             </ListGroup.Item>
             <ListGroup.Item>Price : LKR{product.price}</ListGroup.Item>
-            {/* <ListGroup.Item>
+            <ListGroup.Item>
               <Row xs={1} md={2} className="g-2">
-                {[product.Image, ...product.Images].map((x) => (
-                  <Col key={x}>
-                    <Card>
-                      <Button
-                        className="thumbnail"
-                        type="button"
-                        variant="light"
-                        onClick={() => setSelectedImage(x)}
-                      >
-                        <Card.Img variant="top" src={x} alt="product" />
-                      </Button>
-                    </Card>
-                  </Col>
-                ))}
+                {Array.isArray(product.Images) &&
+                  product.Images.map((x) => (
+                    <Col key={x}>
+                      <Card>
+                        <Button
+                          className="thumbnail"
+                          type="button"
+                          variant="light"
+                          onClick={() => setSelectedImage(x)}
+                        >
+                          <Card.Img variant="top" src={x} alt="product" />
+                        </Button>
+                      </Card>
+                    </Col>
+                  ))}
               </Row>
-            </ListGroup.Item> */}
+            </ListGroup.Item>
             <ListGroup.Item>
               Description:
               <p>{product.description}</p>

@@ -1,16 +1,72 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import expressAsyncHandler from 'express-async-handler';
-import { isAuth, isAdmin, generateToken, baseUrl, mailgun } from '../utils.js';
+import {
+  isAuth,
+  isAdmin,
+  isSupplier,
+  generateToken,
+  baseUrl,
+  mailgun,
+} from '../utils.js';
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
+import pdf from 'pdfkit';
 
 const userRouter = express.Router();
+
+userRouter.get(
+  '/:id/report',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).send({ message: 'User not found' });
+      }
+
+      // Create a PDF document
+      const doc = new pdf();
+
+      // Pipe the PDF to the response
+      doc.pipe(res);
+
+      // Define a standard template
+      const standardTemplate = (headerText) => {
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(18)
+          .text(headerText, { align: 'center' })
+          .moveDown(1);
+      };
+
+      // Add content to the PDF, including user details
+      standardTemplate('User Details');
+
+      doc.font('Helvetica');
+      doc.fontSize(12);
+
+      doc.text(`User ID: ${user._id}`);
+      doc.text(`Name: ${user.name}`);
+      doc.text(`Email: ${user.email}`);
+      doc.text(`Is Admin: ${user.isAdmin ? 'Yes' : 'No'}`);
+      doc.text(`Is Supplier: ${user.isSupplier ? 'Yes' : 'No'}`);
+
+      // End the document
+      doc.end();
+    } catch (err) {
+      return res.status(500).send({ message: 'Error generating PDF' });
+    }
+  })
+);
 
 userRouter.get(
   '/',
   isAuth,
   isAdmin,
+  isSupplier,
   expressAsyncHandler(async (req, res) => {
     const users = await User.find({});
     res.send(users);
@@ -21,6 +77,7 @@ userRouter.get(
   '/:id',
   isAuth,
   isAdmin,
+  isSupplier,
   expressAsyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (user) {
@@ -35,12 +92,14 @@ userRouter.put(
   '/:id',
   isAuth,
   isAdmin,
+  isSupplier,
   expressAsyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       user.isAdmin = Boolean(req.body.isAdmin);
+      user.isSupplier = Boolean(req.body.isSupplier);
       const updatedUser = await user.save();
       res.send({ message: 'User Updated', user: updatedUser });
     } else {
@@ -116,6 +175,7 @@ userRouter.delete(
   '/:id',
   isAuth,
   isAdmin,
+  isSupplier,
   expressAsyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (user) {
@@ -142,6 +202,7 @@ userRouter.post(
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
+          isSupplier: user.isSupplier,
           token: generateToken(user),
         });
         return;
@@ -165,6 +226,7 @@ userRouter.post(
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      isSupplier: user.isSupplier,
       token: generateToken(user),
     });
   })
@@ -188,6 +250,7 @@ userRouter.put(
         name: updatedUser.name,
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
+        isSupplier: updatedUser.isSupplier,
         token: generateToken(updatedUser),
       });
     } else {

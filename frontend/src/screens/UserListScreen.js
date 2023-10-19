@@ -9,7 +9,7 @@ import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faFilePdf, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -89,6 +89,28 @@ export default function UserListScreen() {
       }
     }
   };
+
+  const viewUserDetailsPdfHandler = async (user) => {
+    // Send a request to the backend to generate and return the PDF
+    try {
+      const response = await axios.get(`/api/users/${user._id}/report`, {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+        responseType: 'blob', // Tell Axios to expect a binary response
+      });
+
+      // Create a Blob object from the response data
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+
+      // Create a URL for the Blob
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Open the PDF in a new tab
+      window.open(pdfUrl, '_blank');
+    } catch (err) {
+      toast.error(getError(err));
+    }
+  };
+
   return (
     <div>
       <Helmet>
@@ -109,6 +131,7 @@ export default function UserListScreen() {
               <th>NAME</th>
               <th>EMAIL</th>
               <th>IS ADMIN</th>
+              <th>IS SUPPLIER</th>
               <th>ACTIONS</th>
             </tr>
           </thead>
@@ -119,6 +142,7 @@ export default function UserListScreen() {
                 <td>{user.name}</td>
                 <td>{user.email}</td>
                 <td>{user.isAdmin ? 'YES' : 'NO'}</td>
+                <td>{user.isSupplier ? 'YES' : 'NO'}</td>
                 <td>
                   <Button
                     type="button"
@@ -134,6 +158,14 @@ export default function UserListScreen() {
                     onClick={() => deleteHandler(user)}
                   >
                     <FontAwesomeIcon icon={faTrash} />
+                  </Button>
+                  &nbsp;
+                  <Button
+                    type="button"
+                    variant="light"
+                    onClick={() => viewUserDetailsPdfHandler(user)}
+                  >
+                    <FontAwesomeIcon icon={faFilePdf} />
                   </Button>
                 </td>
               </tr>
