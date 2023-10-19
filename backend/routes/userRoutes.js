@@ -7,12 +7,11 @@ import {
   isSupplier,
   generateToken,
   baseUrl,
-  mailgun,
+  sendMail,
 } from '../utils.js';
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
 import pdf from 'pdfkit';
-
 const userRouter = express.Router();
 
 userRouter.get(
@@ -123,24 +122,21 @@ userRouter.post(
       //reset link
       console.log(`${baseUrl()}/reset-password/${token}`);
 
-      mailgun()
-        .messages()
-        .send(
-          {
-            from: 'GaraFashion <mailgun@sandbox-123.mailgun.org>',
-            to: `${user.name} <${user.email}>`,
-            subject: `Reset Password`,
-            html: ` 
-             <p>Please Click the following link to reset your password:</p> 
-             <a href="${baseUrl()}/reset-password/${token}"}>Reset Password</a>
-             `,
-          },
-          (error, body) => {
-            console.log(error);
-            console.log(body);
-          }
-        );
-      res.send({ message: 'We sent reset password link to your email.' });
+      sendMail({
+        to: `${user.name} <${user.email}>`,
+        subject:
+          'Reset Password For User Account in Gara Fashion Clothing Sri Lanka',
+        html: `
+          <h1> Hi ${user.name} </h1>
+          <p>Please Click the following link to reset your password:</p>
+          <a href="${baseUrl()}/reset-password/${token}">Reset Password</a>
+          <p>Happy Shopping</p>
+          
+          <h2>The Gara Fashion Team</h2>
+        `,
+      });
+
+      res.send({ message: 'We sent a reset password link to your email.' });
     } else {
       res.status(404).send({ message: 'User not found' });
     }

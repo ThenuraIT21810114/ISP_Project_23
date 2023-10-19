@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
-import { isAuth, isAdmin, mailgun, payOrderEmailTemplate } from '../utils.js';
+import { isAuth, isAdmin, sendMail, payOrderEmailTemplate } from '../utils.js';
 import pdf from 'pdfkit';
 
 const orderRouter = express.Router();
@@ -216,25 +216,13 @@ orderRouter.put(
       };
 
       const updatedOrder = await order.save();
-      mailgun()
-        .messages()
-        .send(
-          {
-            from: 'GaraFashion <mailgun@sandbox-123.mailgun.org>',
-            to: `${order.user.name} <${order.user.email}>`,
-            subject: `New order ${order._id}`,
-            html: payOrderEmailTemplate(order),
-          },
-          (error, body) => {
-            if (error) {
-              console.error('Mailgun API Error:', error);
-              // Handle the error appropriately, e.g., send an error response.
-            } else {
-              console.log('Mailgun API Response:', body);
-              // Send a success response.
-            }
-          }
-        );
+      const emailHtml = payOrderEmailTemplate(order);
+
+      sendMail({
+        to: `${order.user.name} <${order.user.email}>`,
+        subject: `New Order ${order.user.email}`,
+        html: emailHtml, // Use the emailHtml variable here
+      });
       res.send({ message: 'Order Paid', order: updatedOrder });
     } else {
       res.status(404).send({ message: 'Order Not Found' });

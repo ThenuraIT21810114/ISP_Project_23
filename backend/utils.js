@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import mg from 'mailgun-js';
+import nodemailer from 'nodemailer';
 
 export const baseUrl = () =>
   process.env.BASE_URL
@@ -66,11 +66,33 @@ export const isAdmin = (req, res, next) => {
   }
 };
 
-export const mailgun = () =>
-  mg({
-    apiKey: process.env.MAILGUN_API_KEY,
-    domain: process.env.MAILGUN_DOMIAN,
+//var nodemailer = require('nodemailer');
+
+export const sendMail = (mailOptions) => {
+  console.log('test mail.....');
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
   });
+};
+
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'thenura123nemhan@gmail.com',
+    pass: 'jhbn thtg sccv xktb',
+  },
+});
+
+// var mailOptions = {
+//   from: 'thenura123nemhan@gmail.com',
+//   to: 'warnasirihatn@gmail.com',
+//   subject: 'Sending Email using Node.js',
+//   text: '',
+// };
 
 export const payOrderEmailTemplate = (order) => {
   return `<h1>Thanks for shopping with us</h1>
@@ -83,7 +105,7 @@ export const payOrderEmailTemplate = (order) => {
   <tr>
   <td><strong>Product</strong></td>
   <td><strong>Quantity</strong></td>
-  <td><strong align="right">Price</strong></td>
+  <td style="text-align: right;"><strong>Price</strong></td>
   </thead>
   <tbody>
   ${order.orderItems
@@ -92,7 +114,7 @@ export const payOrderEmailTemplate = (order) => {
     <tr>
     <td>${item.name}</td>
     <td align="center">${item.quantity}</td>
-    <td align="right"> LKR${item.price.toFixed(2)}</td>
+    <td style="text-align: right;"> LKR${item.price.toFixed(2)}</td>
     </tr>
   `
     )
@@ -129,5 +151,6 @@ export const payOrderEmailTemplate = (order) => {
   <p>
   Thanks for shopping with us.
   </p>
+  <h3>The Gara Fashion Team</h3>
   `;
 };
