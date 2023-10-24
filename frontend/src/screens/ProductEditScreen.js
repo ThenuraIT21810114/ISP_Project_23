@@ -61,8 +61,22 @@ export default function ProductEditScreen() {
   const [Image, setImage] = useState('');
   const [Images, setImages] = useState([]);
   const [category, setCategory] = useState('');
+  const [customCategoryInput, setCustomCategoryInput] = useState(''); // For custom category input
+  const [categories, setCategories] = useState([
+    'Dress',
+    'Tops',
+    'Skirts',
+    'Trousers',
+  ]);
   const [countInStock, setCountInStock] = useState('');
   const [Material, setMaterial] = useState('');
+  const [customMaterialInput, setCustomMaterialInput] = useState(''); // For custom material input
+  const [materials, setMaterials] = useState([
+    'Linen',
+    'Cotton',
+    'Silk',
+    'Velvet',
+  ]);
   const [description, setDescription] = useState('');
 
   useEffect(() => {
@@ -89,6 +103,28 @@ export default function ProductEditScreen() {
     };
     fetchData();
   }, [productId]);
+
+  const handleCustomMaterialAddition = () => {
+    if (
+      customMaterialInput.trim() !== '' &&
+      !materials.includes(customMaterialInput)
+    ) {
+      setMaterials([...materials, customMaterialInput]);
+      setMaterial(customMaterialInput); // Select the newly added material
+      setCustomMaterialInput(''); // Clear the input field
+    }
+  };
+
+  const handleCustomCategoryAddition = () => {
+    if (
+      customCategoryInput.trim() !== '' &&
+      !categories.includes(customCategoryInput)
+    ) {
+      setCategories([...categories, customCategoryInput]);
+      setCategory(customCategoryInput); // Select the newly added category
+      setCustomCategoryInput(''); // Clear the input field
+    }
+  };
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -233,23 +269,72 @@ export default function ProductEditScreen() {
             />
             {loadingUpload && <LoadingBox></LoadingBox>}
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="category">
             <Form.Label>Category</Form.Label>
             <Form.Control
+              as="select"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-            />
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+              <option value="New Category">Other</option>
+            </Form.Control>
           </Form.Group>
+
+          {category === 'New Category' && (
+            <div>
+              <Form.Group className="mb-3" controlId="customCategory">
+                <Form.Label>Custom Category</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={customCategoryInput}
+                  onChange={(e) => setCustomCategoryInput(e.target.value)}
+                  required
+                />
+              </Form.Group>
+              <button onClick={handleCustomCategoryAddition}>
+                Add Custom Category
+              </button>
+            </div>
+          )}
           <Form.Group className="mb-3" controlId="Material">
             <Form.Label>Material</Form.Label>
             <Form.Control
+              as="select"
               value={Material}
               onChange={(e) => setMaterial(e.target.value)}
               required
-            />
+            >
+              {materials.map((material) => (
+                <option key={material} value={material}>
+                  {material}
+                </option>
+              ))}
+              <option value="New Material">Other</option>
+            </Form.Control>
           </Form.Group>
+
+          {Material === 'New Material' && (
+            <div>
+              <Form.Group className="mb-3" controlId="customMaterial">
+                <Form.Label>Custom Material</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={customMaterialInput}
+                  onChange={(e) => setCustomMaterialInput(e.target.value)}
+                  required
+                />
+              </Form.Group>
+              <button onClick={handleCustomMaterialAddition}>
+                Add Custom Material
+              </button>
+            </div>
+          )}
           <Form.Group className="mb-3" controlId="countInStock">
             <Form.Label>Count In Stock</Form.Label>
             <Form.Control
