@@ -28,38 +28,40 @@ export const generateToken = (user) => {
 
 // Middleware function to check if a user is authenticated
 export const isAuth = (req, res, next) => {
-  const authorization = req.headers.authorization;
-  if (authorization) {
-    const token = authorization.slice(7, authorization.length); // Extract the token (e.g., Bearer XXXXXX)
-    jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
-      if (err) {
-        res.status(401).send({ message: 'Invalid Token' });
-      } else {
-        req.user = decode;
-        next();
-      }
-    });
-  } else {
-    res.status(401).send({ message: 'No Token' });
+  const token = extractTokenFromHeader(req);
+  if (!token) {
+    return res.status(401).send({ message: 'No Token' });
   }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
+    if (err) {
+      return res.status(401).send({ message: 'Invalid Token' });
+    }
+    req.user = decode;
+    next();
+  });
 };
 
 // Middleware function to check if a user is a supplier
 export const isSupplier = (req, res, next) => {
-  const authorization = req.headers.authorization;
-  if (authorization) {
-    const token = authorization.slice(7, authorization.length); // Extract the token (e.g., Bearer XXXXXX)
-    jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
-      if (err) {
-        res.status(401).send({ message: 'Invalid Token' });
-      } else {
-        req.user = decode;
-        next();
-      }
-    });
-  } else {
-    res.status(401).send({ message: 'No Token' });
+  const token = extractTokenFromHeader(req);
+  if (!token) {
+    return res.status(401).send({ message: 'No Token' });
   }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
+    if (err) {
+      return res.status(401).send({ message: 'Invalid Token' });
+    }
+    req.user = decode;
+    next();
+  });
+};
+
+// Extract the token from the Authorization header
+const extractTokenFromHeader = (req) => {
+  const authorization = req.headers.authorization;
+  return authorization ? authorization.slice(7) : null;
 };
 
 // Middleware function to check if a user is an admin
