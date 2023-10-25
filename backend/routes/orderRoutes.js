@@ -102,6 +102,8 @@ orderRouter.post(
       itemsPrice: req.body.itemsPrice,
       shippingPrice: req.body.shippingPrice,
       taxPrice: req.body.taxPrice,
+      discountCode: req.body.discountCode,
+      discountAmount: req.body.discountAmount,
       totalPrice: req.body.totalPrice,
       user: req.user._id,
     });
@@ -135,6 +137,29 @@ orderRouter.get(
       },
     ]);
 
+    const completedOrders = await Order.countDocuments({ isDelivered: true }); //delievered orders
+    const paidOrders = await Order.countDocuments({ isPaid: true }); // Add this line to count paid orders
+    const discountUsers = await Order.countDocuments({
+      discountCode: { $ne: null },
+    }); // Add this line to count customers with discount codes
+
+    const topProducts = await Order.aggregate([
+      {
+        $unwind: '$orderItems',
+      },
+      {
+        $group: {
+          _id: '$orderItems.product', // Group by product ID
+          productName: { $first: '$orderItems.name' }, // Get the product name
+          totalQuantitySold: { $sum: '$orderItems.quantity' },
+          totalRevenue: { $sum: '$orderItems.price' },
+        },
+      },
+      {
+        $sort: { totalQuantitySold: -1 }, // Sort by total quantity sold in descending order
+      },
+    ]);
+
     const dailyOrders = await Order.aggregate([
       {
         $group: {
@@ -155,7 +180,23 @@ orderRouter.get(
       },
     ]);
 
-    res.send({ users, orders, dailyOrders, productCategories });
+    // Fetch recent orders
+    const recentOrders = await Order.find({})
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('user', 'name');
+
+    res.send({
+      users,
+      orders,
+      completedOrders,
+      paidOrders,
+      discountUsers,
+      topProducts,
+      dailyOrders,
+      productCategories,
+      recentOrders, // Include recent orders
+    });
   })
 );
 

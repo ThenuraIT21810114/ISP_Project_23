@@ -294,6 +294,24 @@ export default function OrderScreen() {
                 </ListGroup.Item>
                 <ListGroup.Item>
                   <Row>
+                    <Col>Discount Code</Col>
+                    <Col>
+                      {order.discountAmount > 0 ? order.discountCode : 'N/A'}
+                    </Col>
+                  </Row>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <Row>
+                    <Col>Discount Amount</Col>
+                    <Col>
+                      {order.discountAmount > 0
+                        ? `LKR -${order.discountAmount.toFixed(2)}`
+                        : 'N/A'}
+                    </Col>
+                  </Row>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <Row>
                     <Col>
                       <strong> Order Total</strong>
                     </Col>

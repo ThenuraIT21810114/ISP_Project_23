@@ -149,6 +149,7 @@ export const payOrderEmailTemplate = (order) => {
   ${order.shippingAddress.postalCode}<br/>
   </p>
   <hr/>
+  <p>Next time shopping You Can use this code to get a 10% discount - DISCOUNT10</p>
   <p>
   Thanks for shopping with us.
   </p>

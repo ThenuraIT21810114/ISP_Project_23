@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
@@ -36,6 +36,18 @@ export default function PlaceOrderScreen() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { cart, userInfo } = state;
 
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  //css part in discount button
+  const buttonStyles = {
+    backgroundColor: 'black',
+    color: 'white',
+    padding: '5px 10px',
+    border: 'none',
+    cursor: 'pointer',
+  };
+
   // Calculate the Tax Rate & Shipping Price
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
   cart.itemsPrice = round2(
@@ -43,7 +55,9 @@ export default function PlaceOrderScreen() {
   );
   cart.shippingPrice = cart.itemsPrice > 100 ? round2(0) : round2(10);
   cart.taxPrice = round2(0.15 * cart.itemsPrice);
-  cart.totalPrice = cart.itemsPrice + cart.shippingPrice + cart.taxPrice;
+  cart.totalPrice = round2(
+    cart.itemsPrice + cart.shippingPrice + cart.taxPrice - discountAmount
+  );
 
   const placeOrderHandler = async () => {
     try {
@@ -59,6 +73,8 @@ export default function PlaceOrderScreen() {
           shippingPrice: cart.shippingPrice,
           taxPrice: cart.taxPrice,
           totalPrice: cart.totalPrice,
+          discountAmount,
+          discountCode,
         },
         {
           headers: {
@@ -73,6 +89,17 @@ export default function PlaceOrderScreen() {
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));
+    }
+  };
+
+  const applyDiscount = () => {
+    if (discountCode === 'DISCOUNT10') {
+      const discountPercentage = 0.1; // 10% discount
+      const calculatedDiscount = cart.itemsPrice * discountPercentage;
+      setDiscountAmount(calculatedDiscount);
+    } else {
+      // Handle invalid code or no discount code.
+      setDiscountAmount(0);
     }
   };
 
@@ -166,11 +193,36 @@ export default function PlaceOrderScreen() {
                 </ListGroup.Item>
                 <ListGroup.Item>
                   <Row>
+                    <Col>Discount</Col>
+                    <Col>LKR -{discountAmount.toFixed(2)}</Col>
+                  </Row>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Enter Discount Code"
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value)}
+                    />
+                    <button
+                      className="apply-discount-button"
+                      style={buttonStyles} // Apply the styles
+                      onClick={applyDiscount}
+                    >
+                      Apply Discount
+                    </button>
+                  </div>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <Row>
                     <Col>
                       <strong> Order Total</strong>
                     </Col>
                     <Col>
-                      <strong>LKR {cart.totalPrice.toFixed(2)}</strong>
+                      <strong>
+                        LKR {Math.max(0, cart.totalPrice.toFixed(2))}
+                      </strong>
                     </Col>
                   </Row>
                 </ListGroup.Item>

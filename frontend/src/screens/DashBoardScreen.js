@@ -69,6 +69,10 @@ export default function DashBoardScreen() {
               <Card>
                 <Card.Body>
                   <Card.Title>
+                    <i
+                      className="fas fa-user"
+                      style={{ marginRight: '5px' }}
+                    ></i>
                     {summary.users && summary.users[0]
                       ? summary.users[0].numUsers
                       : 0}
@@ -81,6 +85,10 @@ export default function DashBoardScreen() {
               <Card>
                 <Card.Body>
                   <Card.Title>
+                    <i
+                      className="fas fa-shopping-bag"
+                      style={{ marginRight: '5px' }}
+                    ></i>
                     {summary.orders && summary.users[0]
                       ? summary.orders[0].numOrders
                       : 0}
@@ -89,17 +97,64 @@ export default function DashBoardScreen() {
                 </Card.Body>
               </Card>
             </Col>
-
             <Col md={4}>
               <Card>
                 <Card.Body>
                   <Card.Title>
+                    <i
+                      className="fas fa-chart-line"
+                      style={{ marginRight: '5px' }}
+                    ></i>
                     LKR
                     {summary.orders && summary.users[0]
                       ? summary.orders[0].totalSales.toFixed(2)
                       : 0}
                   </Card.Title>
                   <Card.Text> Total Sales</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+          <Row className="mt-4">
+            <Col md={4}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>
+                    <i
+                      className="fas fa-check-circle"
+                      style={{ marginRight: '5px' }}
+                    ></i>
+                    {summary.completedOrders ? summary.completedOrders : 0}
+                  </Card.Title>
+                  <Card.Text> Completed Orders</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={4}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>
+                    <i
+                      className="fas fa-money-check"
+                      style={{ marginRight: '5px' }}
+                    ></i>
+                    {summary.paidOrders ? summary.paidOrders : 0}
+                  </Card.Title>
+                  <Card.Text> Paid Orders</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={4}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>
+                    <i
+                      className="fas fa-tags"
+                      style={{ marginRight: '5px' }}
+                    ></i>
+                    {summary.discountUsers ? summary.discountUsers : 0}
+                  </Card.Title>
+                  <Card.Text> Customers with Discount Code</Card.Text>
                 </Card.Body>
               </Card>
             </Col>
@@ -120,6 +175,60 @@ export default function DashBoardScreen() {
                 ]}
               ></Chart>
             )}
+          </div>
+          <div>
+            <h2>Top Selling Products</h2>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'center' }}>Product ID</th>
+                  <th style={{ textAlign: 'center' }}>Product Name</th>
+                  <th style={{ textAlign: 'center' }}>Quantity Sold</th>
+                  <th style={{ textAlign: 'center' }}>Total Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.topProducts.map((product) => (
+                  <tr key={product._id}>
+                    <td>{product._id}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      {product.productName}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {product.totalQuantitySold}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      LKR{product.totalRevenue.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h2>Recent Orders</h2>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'center' }}>Order ID</th>
+                  <th style={{ textAlign: 'center' }}>Customer Name</th>
+                  <th style={{ textAlign: 'center' }}>Order Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.recentOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td>{order._id}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      {order.user?.name || 'Guest'}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {new Date(order.createdAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <div className="my-3">
             <h2>Categories</h2>

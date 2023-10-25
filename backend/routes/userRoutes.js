@@ -179,6 +179,22 @@ userRouter.delete(
         res.status(400).send({ message: 'Can Not Delete Admin User' });
         return;
       }
+
+      // Construct the signup page link
+      const signupPageLink = 'http://localhost:3000/signup?redirect=/'; // Replace with your actual signup page URL
+
+      sendMail({
+        to: `${user.name} <${user.email}>`,
+        subject: `Account Deletion Notification`,
+        html: `<h1> Hi ${user.name} </h1>
+        <p>Your account has been deleted.</p>
+        <p>If you'd like to create a new account, you can sign up again:</p>
+        <a href="${signupPageLink}">Sign Up</a>
+        <p>Thank You</p>
+        <p>Happy Shopping</p>
+        <h2>The Gara Fashion Team</h2>`,
+      });
+
       await user.deleteOne();
       res.send({ message: 'User Deleted' });
     } else {
