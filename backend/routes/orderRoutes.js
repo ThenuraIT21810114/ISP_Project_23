@@ -186,6 +186,39 @@ orderRouter.get(
       .limit(10)
       .populate('user', 'name');
 
+    // New: Calculate monthly summaries
+    const monthlySummaries = await Order.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          numOrders: { $sum: 1 },
+          totalSales: { $sum: '$totalPrice' },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    // New: Calculate yearly summaries
+    const yearlySummaries = await Order.aggregate([
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' } },
+          numOrders: { $sum: 1 },
+          totalSales: { $sum: '$totalPrice' },
+        },
+      },
+      { $sort: { '_id.year': 1 } },
+    ]);
+
+    // Fetch low-stock products
+    const lowStockThreshold = 10; // Adjust the threshold as needed
+    const lowStockProducts = await Product.find({
+      countInStock: { $lte: lowStockThreshold },
+    });
+
     res.send({
       users,
       orders,
@@ -196,6 +229,9 @@ orderRouter.get(
       dailyOrders,
       productCategories,
       recentOrders, // Include recent orders
+      monthlySummaries, // Include monthly summaries
+      yearlySummaries, // Include yearly summaries
+      lowStockProducts, // Include low-stock products
     });
   })
 );

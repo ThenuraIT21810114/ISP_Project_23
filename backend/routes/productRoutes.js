@@ -6,6 +6,24 @@ import pdf from 'pdfkit';
 
 const productRouter = express.Router();
 
+// New route to get low-stock products
+productRouter.get(
+  '/lowstock',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    try {
+      const lowStockThreshold = 10; // Set your low-stock threshold
+      const lowStockProducts = await Product.find({
+        countInStock: { $lte: lowStockThreshold },
+      });
+      res.json(lowStockProducts);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching low-stock products' });
+    }
+  })
+);
+
 productRouter.get(
   '/:id/report',
   isAuth,

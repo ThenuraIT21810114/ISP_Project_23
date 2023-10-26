@@ -245,9 +245,10 @@ userRouter.post(
 );
 
 userRouter.put(
-  '/profile',
+  '/profile/:id',
   isAuth,
   expressAsyncHandler(async (req, res) => {
+    const userId = req.params.id; // Get the user's ID from the URL parameter
     const user = await User.findById(req.user._id);
     if (user) {
       user.name = req.body.name || user.name;

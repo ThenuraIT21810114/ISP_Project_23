@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import Chart from 'react-google-charts';
 import axios from 'axios';
 import { Store } from '../Store';
@@ -32,16 +32,34 @@ export default function DashBoardScreen() {
     loading: true,
     error: '',
   });
+
   const { state } = useContext(Store);
   const { userInfo } = state;
+
+  // State to store low-stock products
+  const [lowStockProducts, setLowStockProducts] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get('/api/orders/summary', {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        if (userInfo && userInfo.token) {
+          // Pass the token in the headers
+          const config = {
+            headers: {
+              Authorization: `Bearer ${userInfo.token}`,
+            },
+          };
+
+          const { data } = await axios.get('/api/orders/summary', config);
+          dispatch({ type: 'FETCH_SUCCESS', payload: data });
+
+          // Fetch low-stock products
+          const lowStockResponse = await axios.get(
+            '/api/products/lowstock',
+            config
+          );
+          setLowStockProducts(lowStockResponse.data);
+        }
       } catch (err) {
         dispatch({
           type: 'FETCH_FAIL',
@@ -51,6 +69,51 @@ export default function DashBoardScreen() {
     };
     fetchData();
   }, [userInfo]);
+
+  // Function to get month name from numeric value
+  const getMonthName = (month) => {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return monthNames[month - 1];
+  };
+
+  // Check if monthlySummaries and yearlySummaries are available
+  const monthlySummaries =
+    summary && summary.monthlySummaries ? summary.monthlySummaries : [];
+  const yearlySummaries =
+    summary && summary.yearlySummaries ? summary.yearlySummaries : [];
+
+  // Monthly Sales Chart Data Mapping
+  const monthlySalesData = [
+    ['Month', 'Number of Orders', 'Total Sales'],
+    ...monthlySummaries.map((summary) => [
+      `${getMonthName(summary._id.month)} ${summary._id.year}`,
+      summary.numOrders,
+      summary.totalSales,
+    ]),
+  ];
+
+  // Yearly Sales Chart Data Mapping
+  const yearlySalesData = [
+    ['Year', 'Number of Orders', 'Total Sales'],
+    ...yearlySummaries.map((summary) => [
+      summary._id.year,
+      summary.numOrders,
+      summary.totalSales,
+    ]),
+  ];
 
   return (
     <div>
@@ -176,6 +239,41 @@ export default function DashBoardScreen() {
               ></Chart>
             )}
           </div>
+          {/* Monthly Sales Chart */}
+          <div>
+            <h2>Monthly Sales Summary</h2>
+            <Chart
+              width="100%"
+              height="400px"
+              chartType="LineChart"
+              loader={<div>Loading Chart...</div>}
+              data={monthlySalesData}
+              options={{
+                title: 'Monthly Sales Summary',
+                hAxis: { title: 'Month' },
+                vAxis: { title: 'Value' },
+                legend: { position: 'top' },
+              }}
+            />
+          </div>
+
+          {/* Yearly Sales Chart */}
+          <div>
+            <h2>Yearly Sales Summary</h2>
+            <Chart
+              width="100%"
+              height="400px"
+              chartType="BarChart"
+              loader={<div>Loading Chart...</div>}
+              data={yearlySalesData}
+              options={{
+                title: 'Yearly Sales Summary',
+                hAxis: { title: 'Value' },
+                vAxis: { title: 'Year' },
+                legend: { position: 'top' },
+              }}
+            />
+          </div>
           <div>
             <h2>Top Selling Products</h2>
             <table className="table table-bordered">
@@ -247,6 +345,24 @@ export default function DashBoardScreen() {
               ></Chart>
             )}
           </div>
+          {/* Display low-stock products */}
+          <Row>
+            <Col md={12}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>Low Stock Products</Card.Title>
+                  <ul>
+                    {lowStockProducts.map((product) => (
+                      <li key={product._id}>
+                        <strong>{product.name}</strong> - Stock:{' '}
+                        {product.countInStock}
+                      </li>
+                    ))}
+                  </ul>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
         </>
       )}
     </div>
