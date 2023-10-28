@@ -9,6 +9,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import { Helmet } from 'react-helmet-async';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -114,6 +116,132 @@ export default function DashBoardScreen() {
       summary.totalSales,
     ]),
   ];
+
+  const generateDailySalesPDF = () => {
+    // Create a new PDF document for daily sales
+    const doc = new jsPDF();
+
+    // Add content to the PDF document
+    doc.text('Daily Sales Report', 10, 10);
+
+    // Add daily sales data to the PDF
+    const dailySalesTable = [];
+    dailySalesTable.push([
+      'Date',
+      'Number of Orders',
+      'Completed Orders',
+      'Paid Orders',
+      'Sales',
+    ]);
+    summary.dailyOrders.forEach((order) => {
+      // Format the sales value as "LKR 10,000.00"
+      const formattedSales = `LKR ${order.sales
+        .toFixed(2)
+        .replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+
+      // Add the number of orders, completed orders, paid orders, date, and formatted sales to the table
+      dailySalesTable.push([
+        order._id,
+        order.orders,
+        order.completedOrders,
+        order.paidOrders,
+        formattedSales,
+      ]);
+    });
+
+    doc.autoTable({
+      head: [dailySalesTable[0]],
+      body: dailySalesTable.slice(1),
+      startY: 20,
+    });
+
+    // Save the PDF with a unique name (e.g., based on the report date)
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `DailySalesReport_${date}.pdf`;
+
+    // Save the PDF and make it downloadable
+    doc.save(filename);
+  };
+
+  const generateMonthlySalesPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text('Monthly Sales Report', 10, 10);
+
+    const monthlySalesTable = [];
+    monthlySalesTable.push([
+      'Month',
+      'Number of Orders',
+      'Completed Orders',
+      'Paid Orders',
+      'Sales',
+    ]);
+
+    summary.monthlySummaries.forEach((monthData) => {
+      const formattedSales = `LKR ${monthData.totalSales
+        .toFixed(2)
+        .replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+
+      monthlySalesTable.push([
+        `${getMonthName(monthData._id.month)} ${monthData._id.year}`,
+        monthData.numOrders,
+        monthData.completedOrders,
+        monthData.paidOrders,
+        formattedSales,
+      ]);
+    });
+
+    doc.autoTable({
+      head: [monthlySalesTable[0]],
+      body: monthlySalesTable.slice(1),
+      startY: 20,
+    });
+
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `MonthlySalesReport_${date}.pdf`;
+
+    doc.save(filename);
+  };
+
+  const generateAnnualSalesPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text('Annual Sales Report', 10, 10);
+
+    const annualSalesTable = [];
+    annualSalesTable.push([
+      'Year',
+      'Number of Orders',
+      'Completed Orders',
+      'Paid Orders',
+      'Sales',
+    ]);
+
+    summary.yearlySummaries.forEach((yearData) => {
+      const formattedSales = `LKR ${yearData.totalSales
+        .toFixed(2)
+        .replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+
+      annualSalesTable.push([
+        yearData._id.year,
+        yearData.numOrders,
+        yearData.completedOrders,
+        yearData.paidOrders,
+        formattedSales,
+      ]);
+    });
+
+    doc.autoTable({
+      head: [annualSalesTable[0]],
+      body: annualSalesTable.slice(1),
+      startY: 20,
+    });
+
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `AnnualSalesReport_${date}.pdf`;
+
+    doc.save(filename);
+  };
 
   return (
     <div>
@@ -363,6 +491,30 @@ export default function DashBoardScreen() {
               </Card>
             </Col>
           </Row>
+          <div>
+            <h2>Sales Reports</h2>
+            {/* Add a button to generate Daily Sales PDF */}
+            <div className="my-3">
+              <button className="sales-button" onClick={generateDailySalesPDF}>
+                Download Daily Sales PDF
+              </button>
+            </div>
+            {/* Add a button to generate Monthly Sales PDF */}
+            <div className="my-3">
+              <button
+                className="sales-button"
+                onClick={generateMonthlySalesPDF}
+              >
+                Download Monthly Sales PDF
+              </button>
+            </div>
+            {/* Add a button to generate Monthly Sales PDF */}
+            <div className="my-3">
+              <button className="sales-button" onClick={generateAnnualSalesPDF}>
+                Download Annual Sales PDF
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>

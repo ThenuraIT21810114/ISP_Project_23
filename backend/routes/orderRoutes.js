@@ -166,6 +166,10 @@ orderRouter.get(
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
           orders: { $sum: 1 },
           sales: { $sum: '$totalPrice' },
+          completedOrders: {
+            $sum: { $cond: [{ $eq: ['$isDelivered', true] }, 1, 0] },
+          }, // Count completed orders
+          paidOrders: { $sum: { $cond: [{ $eq: ['$isPaid', true] }, 1, 0] } }, // Count paid orders
         },
       },
       { $sort: { _id: 1 } },
@@ -196,6 +200,16 @@ orderRouter.get(
           },
           numOrders: { $sum: 1 },
           totalSales: { $sum: '$totalPrice' },
+          completedOrders: {
+            $sum: {
+              $cond: { if: '$isDelivered', then: 1, else: 0 },
+            },
+          },
+          paidOrders: {
+            $sum: {
+              $cond: { if: '$isPaid', then: 1, else: 0 },
+            },
+          },
         },
       },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
@@ -208,6 +222,16 @@ orderRouter.get(
           _id: { year: { $year: '$createdAt' } },
           numOrders: { $sum: 1 },
           totalSales: { $sum: '$totalPrice' },
+          completedOrders: {
+            $sum: {
+              $cond: { if: '$isDelivered', then: 1, else: 0 },
+            },
+          },
+          paidOrders: {
+            $sum: {
+              $cond: { if: '$isPaid', then: 1, else: 0 },
+            },
+          },
         },
       },
       { $sort: { '_id.year': 1 } },

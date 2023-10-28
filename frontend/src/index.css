@@ -143,3 +143,16 @@ button.thumbnail {
   max-width: 1200px; /* Adjust the max-width as needed */
   margin: 0 auto; /* Center the container horizontally */
 }
+
+.sales-button {
+  background-color: black;
+  color: white;
+  padding: 10px 20px; /* You can adjust the padding values to control the button's length */
+  border: none;
+  border-radius: 5px; /* Adjust the border-radius for button shape */
+  cursor: pointer;
+}
+
+.sales-button:hover {
+  background-color: #333; /* Darken the background color on hover, if desired */
+}
