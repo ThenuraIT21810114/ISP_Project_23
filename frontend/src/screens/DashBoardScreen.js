@@ -72,6 +72,154 @@ export default function DashBoardScreen() {
     fetchData();
   }, [userInfo]);
 
+  const [expenses, setExpenses] = useState([]);
+  const [newExpense, setNewExpense] = useState({ name: '', amount: 0 });
+
+  // State to store monthly expenses
+  const [monthlyExpenses, setMonthlyExpenses] = useState([]);
+
+  // Calculate total expenses
+  const totalExpenses = expenses.reduce(
+    (total, expense) => total + expense.amount,
+    0
+  );
+
+  // Function to handle expense submission for the current month
+  const addExpense = () => {
+    if (newExpense.name && newExpense.amount > 0) {
+      // Update the expenses state with the new expense
+      setExpenses([...expenses, newExpense]);
+
+      // Update the monthly expenses state for the current month
+      const currentMonth = new Date().getMonth() + 1; // 1-based month
+      const currentYear = new Date().getFullYear();
+      setMonthlyExpenses((prevMonthlyExpenses) => {
+        const updatedMonthlyExpenses = [...prevMonthlyExpenses];
+        const existingMonthIndex = updatedMonthlyExpenses.findIndex(
+          (entry) => entry.month === currentMonth && entry.year === currentYear
+        );
+
+        if (existingMonthIndex !== -1) {
+          // If the current month's entry exists, update it
+          updatedMonthlyExpenses[existingMonthIndex].expenses.push(newExpense);
+        } else {
+          // If the current month's entry doesn't exist, create it
+          updatedMonthlyExpenses.push({
+            month: currentMonth,
+            year: currentYear,
+            expenses: [newExpense],
+          });
+        }
+
+        return updatedMonthlyExpenses;
+      });
+
+      setNewExpense({ name: '', amount: 0 });
+    }
+  };
+
+  // Function to calculate monthly profit or loss based on entered expenses
+  const calculateMonthlyProfitLoss = (month, year) => {
+    const monthExpenses = monthlyExpenses.find(
+      (entry) => entry.month === month && entry.year === year
+    );
+    const totalMonthlyExpenses = monthExpenses
+      ? monthExpenses.expenses.reduce(
+          (total, expense) => total + expense.amount,
+          0
+        )
+      : 0;
+
+    const monthSummary = summary.monthlySummaries.find(
+      (summary) => summary._id.month === month && summary._id.year === year
+    );
+    const totalSales = monthSummary ? monthSummary.totalSales : 0;
+
+    return totalSales - totalMonthlyExpenses;
+  };
+
+  // Function to generate and download the monthly expense and profit/loss report as a PDF
+  const generateMonthlyExpenseReportPDF = (month, year) => {
+    const doc = new jsPDF();
+
+    // Add content to the PDF document
+    doc.text(
+      `Monthly Expense and Profit/Loss Report - ${getMonthName(month)} ${year}`,
+      10,
+      10
+    );
+
+    // Add monthly expenses
+    const monthExpenses = monthlyExpenses.find(
+      (entry) => entry.month === month && entry.year === year
+    );
+    if (monthExpenses) {
+      const monthlyExpensesTable = [['Expense Name', 'Expense Amount']];
+      monthExpenses.expenses.forEach((expense) => {
+        monthlyExpensesTable.push([
+          expense.name,
+          `LKR ${expense.amount.toFixed(2)}`,
+        ]);
+      });
+
+      doc.autoTable({
+        head: [monthlyExpensesTable[0]],
+        body: monthlyExpensesTable.slice(1),
+        startY: 20,
+      });
+    }
+
+    // Calculate and add profit or loss for the month
+    const profitLoss = calculateMonthlyProfitLoss(month, year);
+    doc.text(
+      `Profit/Loss: LKR ${profitLoss.toFixed(2)}`,
+      10,
+      doc.autoTable.previous.finalY + 10
+    );
+
+    // Save the PDF with a unique name
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `MonthlyExpenseReport_${getMonthName(
+      month
+    )}_${year}_${date}.pdf`;
+
+    doc.save(filename);
+  };
+
+  // Calculate profit or loss
+  const profitOrLoss = summary
+    ? summary.orders[0].totalSales - totalExpenses
+    : 0; // Ensure summary is defined
+
+  // Function to generate and download the P&L report as a PDF
+  const generateProfitLossReportPDF = () => {
+    const doc = new jsPDF();
+
+    // Add content to the PDF document
+    doc.text('Profit and Loss Report', 10, 10);
+
+    // Add total sales
+    doc.text(
+      `Total Sales: LKR ${
+        summary ? summary.orders[0].totalSales.toFixed(2) : 0
+      }`,
+      20,
+      30
+    );
+
+    // Add total expenses
+    doc.text(`Total Expenses: LKR ${totalExpenses.toFixed(2)}`, 20, 40);
+
+    // Add profit or loss
+    doc.text(`Profit/Loss: LKR ${profitOrLoss.toFixed(2)}`, 20, 50);
+
+    // Save the PDF with a unique name
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `ProfitLossReport_${date}.pdf`;
+
+    doc.save(filename);
+  };
+
   // Function to get month name from numeric value
   const getMonthName = (month) => {
     const monthNames = [
@@ -513,6 +661,61 @@ export default function DashBoardScreen() {
               <button className="sales-button" onClick={generateAnnualSalesPDF}>
                 Download Annual Sales PDF
               </button>
+            </div>
+          </div>
+          <div>
+            <h2>Enter Expenses</h2>
+            <div>
+              <input
+                type="text"
+                placeholder="Expense Name"
+                value={newExpense.name}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, name: e.target.value })
+                }
+              />
+              <input
+                type="number"
+                placeholder="Expense Amount"
+                value={newExpense.amount}
+                onChange={(e) =>
+                  setNewExpense({
+                    ...newExpense,
+                    amount: parseFloat(e.target.value),
+                  })
+                }
+              />
+              <button onClick={addExpense}>Add Expense</button>
+            </div>
+            <h4>Total Expenses: LKR {totalExpenses.toFixed(2)}</h4>
+            <h4>Profit/Loss: LKR {profitOrLoss.toFixed(2)}</h4>
+          </div>
+
+          <div>
+            <h3>Generate Reports</h3>
+            {/* Add a button to generate and download the P&L report */}
+            <div className="my-3">
+              <button
+                className="sales-button"
+                onClick={generateProfitLossReportPDF}
+              >
+                Download Profit and Loss PDF
+              </button>
+            </div>
+            {/* Add a button to generate and download monthly expense reports */}
+            <div className="my-3">
+              {monthlyExpenses.map((entry) => (
+                <button
+                  className="sales-button"
+                  key={`expense-report-${entry.month}-${entry.year}`}
+                  onClick={() =>
+                    generateMonthlyExpenseReportPDF(entry.month, entry.year)
+                  }
+                >
+                  Download {getMonthName(entry.month)} {entry.year} Expense
+                  Report
+                </button>
+              ))}
             </div>
           </div>
         </>
